@@ -60,11 +60,13 @@ app.use((err, _req, res, _next) => {
 });
 
 // ── Start Server ───────────────────────────────────────────────
-app.listen(PORT, () => {
-    console.log(`\n🚀 QuestBridge AI Backend`);
-    console.log(`   Running on  → http://localhost:${PORT}`);
-    console.log(`   Health      → http://localhost:${PORT}/api/health`);
-    console.log(`   Database    → Supabase (PostgreSQL)\n`);
-});
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`\n🚀 QuestBridge AI Backend`);
+        console.log(`   Running on  → http://localhost:${PORT}`);
+        console.log(`   Health      → http://localhost:${PORT}/api/health`);
+        console.log(`   Database    → Supabase (PostgreSQL)\n`);
+    });
+}
 
 module.exports = app;
