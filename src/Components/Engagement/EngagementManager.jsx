@@ -13,7 +13,7 @@ import { BrainCircuit, PenTool, X } from 'lucide-react';
 import QuizGame from './QuizGame';
 import ConnectDotsGame from './ConnectDotsGame';
 
-export default function EngagementManager() {
+export default function EngagementManager({ eventName }) {
     const [isOpen, setIsOpen] = useState(false);
     const [activeGame, setActiveGame] = useState(null); // 'quiz' | 'dots' | null
 
@@ -87,7 +87,7 @@ export default function EngagementManager() {
                             </Button>
                         </div>
 
-                        {activeGame === 'quiz' && <QuizGame onComplete={() => { }} />}
+                        {activeGame === 'quiz' && <QuizGame onComplete={() => { }} eventName={eventName} />}
                         {activeGame === 'dots' && <ConnectDotsGame />}
                     </div>
                 )}

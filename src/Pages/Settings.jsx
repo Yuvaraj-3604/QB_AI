@@ -29,6 +29,9 @@ export default function Settings() {
   const [profileData, setProfileData] = useState({
     full_name: '',
     email: '',
+    phone: '',
+    date_of_birth: '',
+    gender: '',
     company: '',
     bio: '',
     website: '',
@@ -50,6 +53,9 @@ export default function Settings() {
         setProfileData({
           full_name: userData.username || userData.full_name || '',
           email: userData.email || '',
+          phone: userData.phone || '',
+          date_of_birth: userData.date_of_birth || '',
+          gender: userData.gender || '',
           company: userData.company || '',
           bio: userData.bio || '',
           website: userData.website || '',
@@ -202,6 +208,42 @@ export default function Settings() {
                         onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
                         className="mt-1"
                       />
+                    </div>
+                    <div>
+                      <Label htmlFor="phone">Phone Number</Label>
+                      <Input
+                        id="phone"
+                        type="tel"
+                        value={profileData.phone}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, phone: e.target.value }))}
+                        className="mt-1"
+                        placeholder="+1 (555) 000-0000"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="date_of_birth">Birth Date</Label>
+                      <Input
+                        id="date_of_birth"
+                        type="date"
+                        value={profileData.date_of_birth}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, date_of_birth: e.target.value }))}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="gender">Gender</Label>
+                      <select
+                        id="gender"
+                        value={profileData.gender}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, gender: e.target.value }))}
+                        className="mt-1 flex h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                      >
+                        <option value="" disabled>Select...</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                        <option value="prefer_not_to_say">Prefer not to say</option>
+                      </select>
                     </div>
                     <div>
                       <Label htmlFor="company">Company</Label>

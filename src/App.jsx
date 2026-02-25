@@ -13,6 +13,7 @@ import BookDemo from '@/Pages/BookDemo';
 import Dashboard from '@/Pages/Dashboard';
 import Events from '@/Pages/Events';
 import Settings from '@/Pages/Settings';
+import HelpSupport from '@/Pages/HelpSupport';
 
 // Host-only pages
 import CreateEvent from '@/Pages/CreateEvent';
@@ -57,6 +58,7 @@ function App() {
                 <Route path="/Dashboard" element={<Protected><Dashboard /></Protected>} />
                 <Route path="/Events" element={<Protected><Events /></Protected>} />
                 <Route path="/Settings" element={<Protected><Settings /></Protected>} />
+                <Route path="/HelpSupport" element={<Protected><HelpSupport /></Protected>} />
 
                 {/* Host only */}
                 <Route path="/CreateEvent" element={<Protected requireRole="host"><CreateEvent /></Protected>} />

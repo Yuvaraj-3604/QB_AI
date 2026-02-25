@@ -18,8 +18,6 @@ const HOST_MENU = [
   { icon: BarChart3, label: 'Analytics', page: 'Analytics' },
   { icon: Mail, label: 'Marketing', page: 'Marketing' },
   { icon: Trophy, label: 'Leaderboard', page: 'Leaderboard' },
-  { icon: Brain, label: 'AI Results', page: 'AIResults' },
-  { icon: Activity, label: 'Monitoring', page: 'Monitoring' },
   { icon: Settings, label: 'Settings', page: 'Settings' },
 ];
 
@@ -103,10 +101,13 @@ export default function Sidebar({ collapsed, onToggle }) {
             </span>
           </div>
         )}
-        <button className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-slate-800 hover:text-white transition-all w-full">
+        <Link
+          to="/HelpSupport"
+          className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-slate-800 hover:text-white transition-all w-full"
+        >
           <HelpCircle className="w-5 h-5 flex-shrink-0" />
           {!collapsed && <span className="font-medium">Help & Support</span>}
-        </button>
+        </Link>
       </div>
     </aside>
   );

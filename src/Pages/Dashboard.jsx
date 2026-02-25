@@ -110,19 +110,9 @@ export default function Dashboard() {
             {isHost && (
               <div className="flex gap-2 flex-wrap">
                 <Button variant="outline" size="sm"
-                  onClick={() => downloadCSV(`${BASE_URL}/api/download/participants`, 'participants.csv')}
+                  onClick={() => downloadCSV(`${BASE_URL}/api/download/events`, 'my_event_list.csv')}
                   className="text-cyan-700 border-cyan-200 hover:bg-cyan-50">
-                  <Download className="w-3.5 h-3.5 mr-1.5" /> Participants CSV
-                </Button>
-                <Button variant="outline" size="sm"
-                  onClick={() => downloadCSV(`${BASE_URL}/api/download/leaderboard`, 'leaderboard.csv')}
-                  className="text-purple-700 border-purple-200 hover:bg-purple-50">
-                  <Download className="w-3.5 h-3.5 mr-1.5" /> Leaderboard CSV
-                </Button>
-                <Button variant="outline" size="sm"
-                  onClick={() => downloadCSV(`${BASE_URL}/api/download/engagement`, 'engagement.csv')}
-                  className="text-green-700 border-green-200 hover:bg-green-50">
-                  <Download className="w-3.5 h-3.5 mr-1.5" /> Engagement CSV
+                  <Download className="w-3.5 h-3.5 mr-1.5" /> My Event List CSV
                 </Button>
               </div>
             )}

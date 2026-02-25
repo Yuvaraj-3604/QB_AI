@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Bell, Search, Menu } from 'lucide-react';
 import { Input } from '@/Components/ui/input';
 import { Button } from '@/Components/ui/button';
@@ -15,6 +15,13 @@ import {
 
 export default function DashboardHeader({ user, onMenuClick }) {
   const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const handleSearch = (e) => {
+    if (e.key === 'Enter' && searchQuery.trim()) {
+      navigate(`/Events?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('currentUser');
@@ -35,16 +42,32 @@ export default function DashboardHeader({ user, onMenuClick }) {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
           <Input
             placeholder="Search events, attendees..."
-            className="pl-10 w-80 bg-gray-50 border-gray-200"
+            className="pl-10 w-80 bg-gray-50 border-gray-200 focus-visible:ring-cyan-500"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={handleSearch}
           />
         </div>
       </div>
 
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="w-5 h-5 text-gray-600" />
-          <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="relative">
+              <Bell className="w-5 h-5 text-gray-600" />
+              <span className="absolute top-1 right-1 w-2 h-2 bg-cyan-500 rounded-full animate-pulse" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-72">
+            <DropdownMenuLabel className="font-semibold text-gray-900">Notifications</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <div className="py-6 px-4 text-sm text-gray-500 text-center flex flex-col items-center">
+              <Bell className="w-8 h-8 text-gray-300 mb-2" />
+              <p>You're all caught up!</p>
+              <p className="text-xs mt-1">Check back later for new alerts.</p>
+            </div>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -52,11 +75,11 @@ export default function DashboardHeader({ user, onMenuClick }) {
               <Avatar className="w-8 h-8">
                 <AvatarImage src={user?.avatar || "/profile-logo.png"} />
                 <AvatarFallback className="bg-cyan-100 text-cyan-700">
-                  {user?.full_name?.charAt(0) || 'U'}
+                  {user?.username?.charAt(0) || 'U'}
                 </AvatarFallback>
               </Avatar>
               <div className="hidden md:block text-left">
-                <p className="text-sm font-medium text-gray-900">{user?.full_name || 'User'}</p>
+                <p className="text-sm font-medium text-gray-900">{user?.username || 'User'}</p>
                 <p className="text-xs text-gray-500">{user?.email}</p>
               </div>
             </button>

@@ -8,7 +8,15 @@ import { Eye, EyeOff, Loader2, AlertCircle, Users, Mic } from 'lucide-react';
 import { api } from '@/api/base44Client';
 
 export default function Signup() {
-    const [formData, setFormData] = useState({ name: '', email: '', password: '', confirmPassword: '' });
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        phone: '',
+        date_of_birth: '',
+        gender: '',
+        password: '',
+        confirmPassword: ''
+    });
     const [role, setRole] = useState('attendee');
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -35,6 +43,9 @@ export default function Signup() {
             await api.auth.signup({
                 username: formData.name,
                 email: formData.email,
+                phone: formData.phone,
+                date_of_birth: formData.date_of_birth,
+                gender: formData.gender,
                 password: formData.password,
                 role
             });
@@ -80,8 +91,8 @@ export default function Signup() {
                                 type="button"
                                 onClick={() => setRole('attendee')}
                                 className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${role === 'attendee'
-                                        ? 'border-cyan-500 bg-cyan-500/10 text-cyan-400'
-                                        : 'border-slate-600 bg-slate-700/50 text-slate-400 hover:border-slate-500'
+                                    ? 'border-cyan-500 bg-cyan-500/10 text-cyan-400'
+                                    : 'border-slate-600 bg-slate-700/50 text-slate-400 hover:border-slate-500'
                                     }`}
                             >
                                 <Users className="w-6 h-6" />
@@ -92,8 +103,8 @@ export default function Signup() {
                                 type="button"
                                 onClick={() => setRole('host')}
                                 className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${role === 'host'
-                                        ? 'border-Purple-500 bg-purple-500/10 text-purple-400'
-                                        : 'border-slate-600 bg-slate-700/50 text-slate-400 hover:border-slate-500'
+                                    ? 'border-Purple-500 bg-purple-500/10 text-purple-400'
+                                    : 'border-slate-600 bg-slate-700/50 text-slate-400 hover:border-slate-500'
                                     }`}
                                 style={role === 'host' ? { borderColor: '#a855f7', backgroundColor: 'rgba(168,85,247,0.1)', color: '#c084fc' } : {}}
                             >
@@ -117,6 +128,34 @@ export default function Signup() {
                                 value={formData.email} onChange={handleChange} required
                                 className="bg-slate-900 border-slate-700 text-white placeholder:text-slate-500 focus:border-cyan-500" />
                         </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="phone">Mobile Number</Label>
+                            <Input id="phone" name="phone" type="tel" placeholder="+1 (555) 000-0000"
+                                value={formData.phone} onChange={handleChange} required
+                                className="bg-slate-900 border-slate-700 text-white placeholder:text-slate-500 focus:border-cyan-500" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="date_of_birth">Birth Date</Label>
+                                <Input id="date_of_birth" name="date_of_birth" type="date"
+                                    value={formData.date_of_birth} onChange={handleChange} required
+                                    className="bg-slate-900 border-slate-700 text-white placeholder:text-slate-500 focus:border-cyan-500"
+                                    style={{ colorScheme: 'dark' }} />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="gender">Gender</Label>
+                                <select id="gender" name="gender"
+                                    value={formData.gender} onChange={handleChange} required
+                                    className="flex h-10 w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent">
+                                    <option value="" disabled className="text-slate-500">Select...</option>
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                    <option value="other">Other</option>
+                                    <option value="prefer_not_to_say">Prefer not to say</option>
+                                </select>
+                            </div>
+                        </div>
+
                         <div className="space-y-2">
                             <Label htmlFor="password">Password</Label>
                             <div className="relative">

@@ -5,6 +5,7 @@ const SelectContext = React.createContext()
 
 const Select = React.forwardRef(({ children, value, onValueChange, ...props }, ref) => {
     const [isOpen, setIsOpen] = React.useState(false)
+    const [selectedNode, setSelectedNode] = React.useState(null)
     const selectRef = React.useRef(null)
 
     React.useEffect(() => {
@@ -18,8 +19,15 @@ const Select = React.forwardRef(({ children, value, onValueChange, ...props }, r
         return () => document.removeEventListener('mousedown', handleClickOutside)
     }, [])
 
+    // Clear selected node if value is cleared externally
+    React.useEffect(() => {
+        if (value === undefined || value === null || value === "") {
+            setSelectedNode(null)
+        }
+    }, [value])
+
     return (
-        <SelectContext.Provider value={{ value, onValueChange, isOpen, setIsOpen }}>
+        <SelectContext.Provider value={{ value, onValueChange, isOpen, setIsOpen, selectedNode, setSelectedNode }}>
             <div className="relative" ref={selectRef} {...props}>
                 {children}
             </div>
@@ -48,10 +56,12 @@ const SelectTrigger = React.forwardRef(({ className, children, ...props }, ref) 
 })
 SelectTrigger.displayName = "SelectTrigger"
 
-const SelectValue = React.forwardRef(({ className, children, ...props }, ref) => {
+const SelectValue = React.forwardRef(({ className, children, placeholder, ...props }, ref) => {
+    const { selectedNode } = React.useContext(SelectContext)
+
     return (
-        <span ref={ref} className={`flex-1 text-left ${className || ''}`} {...props}>
-            {children}
+        <span ref={ref} className={`flex-1 text-left block truncate ${className || ''}`} {...props}>
+            {selectedNode || children || placeholder}
         </span>
     )
 })
@@ -60,12 +70,10 @@ SelectValue.displayName = "SelectValue"
 const SelectContent = React.forwardRef(({ className, children, ...props }, ref) => {
     const { isOpen } = React.useContext(SelectContext)
 
-    if (!isOpen) return null
-
     return (
         <div
             ref={ref}
-            className={`absolute top-full left-0 right-0 mt-1 z-50 min-w-[8rem] overflow-hidden rounded-md border border-gray-200 bg-white shadow-lg ${className || ''}`}
+            className={`absolute top-full left-0 right-0 mt-1 z-50 min-w-[8rem] overflow-hidden rounded-md border border-gray-200 bg-white shadow-lg ${isOpen ? 'block' : 'hidden'} ${className || ''}`}
             {...props}
         >
             <div className="py-1">{children}</div>
@@ -75,8 +83,14 @@ const SelectContent = React.forwardRef(({ className, children, ...props }, ref) 
 SelectContent.displayName = "SelectContent"
 
 const SelectItem = React.forwardRef(({ className, children, value, ...props }, ref) => {
-    const { value: selectedValue, onValueChange, setIsOpen } = React.useContext(SelectContext)
+    const { value: selectedValue, onValueChange, setIsOpen, setSelectedNode } = React.useContext(SelectContext)
     const isSelected = selectedValue === value
+
+    React.useEffect(() => {
+        if (isSelected) {
+            setSelectedNode(children)
+        }
+    }, [isSelected, children, setSelectedNode])
 
     const handleClick = () => {
         onValueChange && onValueChange(value)
@@ -88,12 +102,12 @@ const SelectItem = React.forwardRef(({ className, children, value, ...props }, r
             ref={ref}
             role="option"
             aria-selected={isSelected}
-            className={`relative flex w-full cursor-pointer select-none items-center justify-between py-2 px-3 text-sm outline-none hover:bg-gray-100 ${isSelected ? 'bg-gray-50' : ''} ${className || ''}`}
+            className={`relative flex w-full cursor-pointer select-none items-center justify-between py-2 px-3 text-sm outline-none hover:bg-gray-100 ${isSelected ? 'bg-gray-50 text-cyan-700' : ''} ${className || ''}`}
             onClick={handleClick}
             {...props}
         >
-            <span>{children}</span>
-            {isSelected && <Check className="w-4 h-4 text-cyan-500" />}
+            <span className="truncate">{children}</span>
+            {isSelected && <Check className="w-4 h-4 text-cyan-500 flex-shrink-0 ml-2" />}
         </div>
     )
 })

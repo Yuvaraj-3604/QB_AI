@@ -29,7 +29,7 @@ const GAMES = [
     { id: 'dots', label: 'Connect Dots', component: ConnectDotsGame },
 ];
 
-function GamesPanel({ collapsed, onToggle }) {
+function GamesPanel({ collapsed, onToggle, eventName }) {
     const [activeGame, setActiveGame] = useState('quiz');
     const ActiveComponent = GAMES.find(g => g.id === activeGame)?.component || QuizGame;
 
@@ -55,8 +55,8 @@ function GamesPanel({ collapsed, onToggle }) {
                         key={g.id}
                         onClick={() => setActiveGame(g.id)}
                         className={`flex-1 py-2.5 text-xs font-semibold transition-all uppercase tracking-wide ${activeGame === g.id
-                                ? 'bg-cyan-500/20 text-cyan-400 border-b-2 border-cyan-500'
-                                : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
+                            ? 'bg-cyan-500/20 text-cyan-400 border-b-2 border-cyan-500'
+                            : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
                             }`}>
                         {g.label}
                     </button>
@@ -66,7 +66,7 @@ function GamesPanel({ collapsed, onToggle }) {
             {/* Game Content */}
             <div className="flex-1 overflow-y-auto p-4">
                 <div className="bg-slate-800 rounded-xl overflow-hidden">
-                    <ActiveComponent />
+                    <ActiveComponent eventName={eventName} />
                 </div>
             </div>
 
@@ -193,7 +193,7 @@ export default function EventParticipation() {
                                 <p className="text-slate-400 text-sm mb-4">🎮 Play games while you wait!</p>
                                 <div className="grid grid-cols-1 gap-4">
                                     <div className="bg-slate-900 rounded-xl p-3">
-                                        <QuizGame />
+                                        <QuizGame eventName={event?.title} />
                                     </div>
                                 </div>
                             </div>
@@ -345,7 +345,7 @@ export default function EventParticipation() {
                             </div>
 
                             {/* Games tabs */}
-                            <GamesTabs />
+                            <GamesTabs eventName={event?.title} />
 
                             {/* Footer */}
                             <div className="px-4 py-2.5 border-t border-slate-700 bg-slate-800/60 flex-shrink-0">
@@ -373,7 +373,7 @@ export default function EventParticipation() {
 }
 
 // ── Games tabs sub-component ──────────────────────────────────
-function GamesTabs() {
+function GamesTabs({ eventName }) {
     const [active, setActive] = useState('quiz');
 
     return (
@@ -383,8 +383,8 @@ function GamesTabs() {
                 {GAMES.map(g => (
                     <button key={g.id} onClick={() => setActive(g.id)}
                         className={`flex-1 py-2.5 text-xs font-bold uppercase tracking-wider transition-all ${active === g.id
-                                ? 'bg-cyan-500/10 text-cyan-400 border-b-2 border-cyan-500'
-                                : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
+                            ? 'bg-cyan-500/10 text-cyan-400 border-b-2 border-cyan-500'
+                            : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
                             }`}>
                         {g.label}
                     </button>
@@ -394,7 +394,7 @@ function GamesTabs() {
             {/* Active game */}
             <div className="flex-1 overflow-y-auto p-3">
                 <div className="bg-slate-800 rounded-xl overflow-hidden shadow-inner">
-                    {active === 'quiz' ? <QuizGame /> : <ConnectDotsGame />}
+                    {active === 'quiz' ? <QuizGame eventName={eventName} /> : <ConnectDotsGame />}
                 </div>
             </div>
         </>

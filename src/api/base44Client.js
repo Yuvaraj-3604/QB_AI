@@ -45,8 +45,8 @@ export const api = {
             setStoredUser(data.user);
             return data.user;
         },
-        signup: async ({ username, email, password, role }) => {
-            const data = await request('POST', '/api/auth/signup', { username, email, password, role });
+        signup: async (userData) => {
+            const data = await request('POST', '/api/auth/signup', userData);
             setToken(data.token);
             setStoredUser(data.user);
             return data.user;
@@ -64,6 +64,11 @@ export const api = {
         isLoggedIn: () => !!getToken() && !!getStoredUser(),
         isHost: () => getStoredUser()?.role === 'host',
         isAttendee: () => getStoredUser()?.role === 'attendee',
+    },
+
+    // ── AI ─────────────────────────────────────────────────────
+    ai: {
+        generateQuiz: (topic) => request('POST', '/api/ai/quiz', { topic }, true)
     },
 
     // ── Events ─────────────────────────────────────────────────
@@ -131,11 +136,11 @@ export const api = {
 
     // ── Downloads ──────────────────────────────────────────────
     download: {
-        participants: () => `${BASE_URL}/api/download/participants`,
-        leaderboard: () => `${BASE_URL}/api/download/leaderboard`,
-        engagement: () => `${BASE_URL}/api/download/engagement`,
+        participants: (eventId) => eventId ? `${BASE_URL}/api/download/requests?eventId=${eventId}` : `${BASE_URL}/api/download/requests`,
+        leaderboard: (eventId) => eventId ? `${BASE_URL}/api/download/leaderboard?eventId=${eventId}` : `${BASE_URL}/api/download/leaderboard`,
+        engagement: (eventId) => eventId ? `${BASE_URL}/api/download/engagement?eventId=${eventId}` : `${BASE_URL}/api/download/engagement`,
         events: () => `${BASE_URL}/api/download/events`,
-        requests: () => `${BASE_URL}/api/download/requests`,
+        requests: (eventId) => eventId ? `${BASE_URL}/api/download/requests?eventId=${eventId}` : `${BASE_URL}/api/download/requests`,
         trigger: (url, filename) => {
             const token = getToken();
             fetch(url, { headers: token ? { Authorization: `Bearer ${token}` } : {} })

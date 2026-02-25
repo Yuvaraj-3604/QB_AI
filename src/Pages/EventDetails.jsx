@@ -208,7 +208,7 @@ export default function EventDetails() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <EngagementManager />
+      <EngagementManager eventName={event?.title} />
       <Sidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
 
       <div className={`transition-all duration-300 ${sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'}`}>
@@ -248,6 +248,27 @@ export default function EventDetails() {
                     </div>
                   </div>
                   <div className="flex gap-2">
+                    {/* CSV Downloads */}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20">
+                          <Download className="w-4 h-4 mr-2" />
+                          Export CSVs
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => api.download.trigger(api.download.participants(eventId), 'participants.csv')}>
+                          <Users className="w-4 h-4 mr-2" /> Participants
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => api.download.trigger(api.download.leaderboard(eventId), 'leaderboard.csv')}>
+                          <Trophy className="w-4 h-4 mr-2" /> Leaderboard
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => api.download.trigger(api.download.engagement(eventId), 'engagement.csv')}>
+                          <Download className="w-4 h-4 mr-2" /> Engagement
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+
                     {event.event_type !== 'in_person' && (
                       <Button
                         onClick={handleZoomAction}
@@ -518,8 +539,8 @@ export default function EventDetails() {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Attendee</TableHead>
-                          <TableHead>Company</TableHead>
+                          <TableHead>Attendee Name</TableHead>
+                          <TableHead>Email</TableHead>
                           <TableHead>Ticket</TableHead>
                           <TableHead>Status</TableHead>
                           <TableHead></TableHead>
@@ -532,16 +553,10 @@ export default function EventDetails() {
                           return (
                             <TableRow key={reg.id}>
                               <TableCell>
-                                <div>
-                                  <p className="font-medium">{reg.name || reg.attendee_name}</p>
-                                  <p className="text-sm text-gray-500">{reg.email || reg.attendee_email}</p>
-                                </div>
+                                <p className="font-medium text-gray-900">{reg.users?.username || reg.name || reg.attendee_name || reg.user_name}</p>
                               </TableCell>
                               <TableCell>
-                                <div>
-                                  <p>{reg.organization || reg.company || '-'}</p>
-                                  <p className="text-sm text-gray-500">{reg.job_title}</p>
-                                </div>
+                                <p className="text-sm text-gray-600">{reg.email || reg.attendee_email || reg.user_email}</p>
                               </TableCell>
                               <TableCell>
                                 <Badge className={`${ticketStyle.bg} ${ticketStyle.text} border-0 capitalize`}>
@@ -646,34 +661,14 @@ export default function EventDetails() {
                 <CardHeader className="flex flex-row items-center justify-between">
                   <div>
                     <CardTitle>Attendee Engagement</CardTitle>
-                    <p className="text-gray-500">Preview activities and download participation reports.</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => api.download.trigger(api.download.engagement(), 'engagement.csv')}
-                      className="border-cyan-200 text-cyan-700 hover:bg-cyan-50"
-                    >
-                      <Download className="w-4 h-4 mr-2" />
-                      Engagement CSV
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => api.download.trigger(api.download.leaderboard(), 'leaderboard.csv')}
-                      className="border-purple-200 text-purple-700 hover:bg-purple-50"
-                    >
-                      <Trophy className="w-4 h-4 mr-2" />
-                      Leaderboard CSV
-                    </Button>
+                    <p className="text-gray-500">Preview activities and interactive widgets for this event.</p>
                   </div>
                 </CardHeader>
                 <CardContent>
                   <div className="grid md:grid-cols-2 gap-8">
                     <div>
                       <h3 className="font-bold mb-4">Quiz Game</h3>
-                      <QuizGame />
+                      <QuizGame eventName={event.title} />
                     </div>
                     <div>
                       <h3 className="font-bold mb-4">Connect The Dots</h3>

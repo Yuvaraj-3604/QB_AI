@@ -35,8 +35,8 @@ import { useToast } from '@/Components/ui/use-toast';
 const eventTypes = [
   { value: 'in_person', label: 'In-Person', icon: Users, desc: 'Physical venue event' },
   { value: 'virtual', label: 'Virtual', icon: Video, desc: 'Online streaming event' },
-  { value: 'hybrid', label: 'Hybrid', icon: Users, desc: 'Both physical and online' },
-  { value: 'webinar', label: 'Webinar', icon: Video, desc: 'Live presentation' }
+  { value: 'webinar', label: 'Webinar', icon: Video, desc: 'Live presentation' },
+  { value: 'hybrid', label: 'Hybrid', icon: Users, desc: 'Both physical and online' }
 ];
 
 const categories = [
@@ -62,6 +62,7 @@ export default function CreateEvent() {
     description: '',
     event_type: 'in_person',
     category: 'conference',
+    custom_category: '',
     start_date: '',
     end_date: '',
     location: '',
@@ -82,11 +83,13 @@ export default function CreateEvent() {
     if (eventId) {
       api.events.get(eventId).then(data => {
         if (data) {
+          const isCustomCategory = data.category && !categories.find(c => c.value === data.category);
           setFormData({
             title: data.title || '',
             description: data.description || '',
             event_type: data.event_type || 'in_person',
-            category: data.category || 'conference',
+            category: isCustomCategory ? 'other' : (data.category || 'conference'),
+            custom_category: isCustomCategory ? data.category : '',
             start_date: data.start_date ? data.start_date.slice(0, 16) : '',
             end_date: data.end_date ? data.end_date.slice(0, 16) : '',
             location: data.location || '',
@@ -124,7 +127,9 @@ export default function CreateEvent() {
   const handleFormSubmit = (e) => {
     e.preventDefault();
     const status = submitAction === 'publish' ? 'published' : (isEditing ? formData.status : 'draft');
-    const dataToSubmit = { ...formData, status };
+    const finalCategory = formData.category === 'other' && formData.custom_category ? formData.custom_category : formData.category;
+    const { custom_category, ...restFormData } = formData;
+    const dataToSubmit = { ...restFormData, category: finalCategory, status };
     if (isEditing) updateMutation.mutate(dataToSubmit);
     else createMutation.mutate(dataToSubmit);
   };
@@ -209,21 +214,37 @@ export default function CreateEvent() {
                         ))}
                       </div>
                     </div>
-                    <div>
-                      <Label htmlFor="category">Category</Label>
-                      <Select
-                        value={formData.category}
-                        onValueChange={(val) => setFormData(prev => ({ ...prev, category: val }))}
-                      >
-                        <SelectTrigger className="mt-1">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {categories.map(cat => (
-                            <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="category">Category</Label>
+                        <Select
+                          value={formData.category}
+                          onValueChange={(val) => setFormData(prev => ({ ...prev, category: val }))}
+                        >
+                          <SelectTrigger className="mt-1">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {categories.map(cat => (
+                              <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {formData.category === 'other' && (
+                        <div>
+                          <Label htmlFor="custom_category">Custom Category Name *</Label>
+                          <Input
+                            id="custom_category"
+                            value={formData.custom_category}
+                            onChange={(e) => setFormData(prev => ({ ...prev, custom_category: e.target.value }))}
+                            placeholder="Enter category name"
+                            className="mt-1"
+                            required
+                          />
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>

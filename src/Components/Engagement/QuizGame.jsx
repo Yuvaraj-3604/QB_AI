@@ -5,43 +5,12 @@ import { CheckCircle2, XCircle, RefreshCcw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { API_URL } from '../../config';
 
-const questions = [
-    {
-        id: 1,
-        question: "What is the primary goal of the Tech Innovation Summit?",
-        options: [
-            "Networking only",
-            "Showcasing latest tech trends",
-            "Selling products",
-            "Hiring candidates"
-        ],
-        answer: 1 // Index of correct answer
-    },
-    {
-        id: 2,
-        question: "Which technology is commonly associated with 'Smart Contracts'?",
-        options: [
-            "AI",
-            "Blockchain",
-            "VR",
-            "IoT"
-        ],
-        answer: 1
-    },
-    {
-        id: 3,
-        question: "Who is the keynote speaker for the 2025 Summit?",
-        options: [
-            "Elon Musk",
-            "Satya Nadella",
-            "To Be Announced",
-            "Tim Cook"
-        ],
-        answer: 2
-    }
-];
+import { api } from '@/api/base44Client';
 
-export default function QuizGame({ onComplete }) {
+export default function QuizGame({ onComplete, eventName }) {
+    const [questions, setQuestions] = useState([]);
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [gameStarted, setGameStarted] = useState(false);
     const [currentQuestion, setCurrentQuestion] = useState(0);
     const [score, setScore] = useState(0);
     const [showResult, setShowResult] = useState(false);
@@ -91,6 +60,47 @@ export default function QuizGame({ onComplete }) {
         setSelectedOption(null);
         setIsCorrect(null);
     };
+
+    if (!gameStarted) {
+        return (
+            <Card className="w-full max-w-md mx-auto text-center border-none shadow-none">
+                <CardHeader>
+                    <CardTitle className="text-2xl">Crazy AI Quiz!</CardTitle>
+                    <CardDescription>Generate a custom unhinged quiz based on: <br /><strong className="text-cyan-600">"{eventName}"</strong></CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex justify-center mb-6">
+                        <div className="text-5xl">🤖</div>
+                    </div>
+                    <p className="text-gray-600 mb-6">
+                        Powered by GROQ's blazing fast LLM.
+                    </p>
+                    <Button
+                        onClick={async () => {
+                            setIsGenerating(true);
+                            try {
+                                const aiQuestions = await api.ai.generateQuiz(eventName);
+                                if (aiQuestions && aiQuestions.length > 0) {
+                                    setQuestions(aiQuestions);
+                                    setGameStarted(true);
+                                } else {
+                                    alert('Received empty or invalid quiz questions.');
+                                }
+                            } catch (err) {
+                                alert('Error generating AI quiz: ' + err.message);
+                            } finally {
+                                setIsGenerating(false);
+                            }
+                        }}
+                        disabled={isGenerating}
+                        className="bg-purple-600 hover:bg-purple-700 text-white w-full py-6 text-lg"
+                    >
+                        {isGenerating ? 'Generating Crazy Questions...' : '✨ Generate AI Quiz Now'}
+                    </Button>
+                </CardContent>
+            </Card>
+        );
+    }
 
     if (showResult) {
         return (
