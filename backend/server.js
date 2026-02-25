@@ -11,6 +11,7 @@ const engagementRoutes = require('./routes/engagement');
 const marketingRoutes = require('./routes/marketing');
 const zoomRoutes = require('./routes/zoom');
 const downloadRoutes = require('./routes/download');
+const aiRoutes = require('./routes/ai');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -47,6 +48,7 @@ app.use('/api/engagement', engagementRoutes);
 app.use('/api/marketing', marketingRoutes);
 app.use('/api/zoom', zoomRoutes);
 app.use('/api/download', downloadRoutes);
+app.use('/api/ai', aiRoutes);
 
 // ── 404 Handler ────────────────────────────────────────────────
 app.use((_req, res) => {

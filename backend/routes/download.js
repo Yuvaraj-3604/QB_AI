@@ -41,9 +41,15 @@ router.get('/participants', async (req, res) => {
 // ── GET /api/download/leaderboard ──────────────────────────────
 router.get('/leaderboard', async (req, res) => {
     try {
-        const { data, error } = await supabase
+        const { eventId } = req.query;
+        let query = supabase
             .from('engagement_logs')
             .select('participant_email, score');
+
+        // If your table has event_id, you can filter it here
+        // if (eventId) query = query.eq('event_id', eventId);
+
+        const { data, error } = await query;
 
         if (error) throw error;
 
@@ -78,11 +84,16 @@ router.get('/leaderboard', async (req, res) => {
 // ── GET /api/download/engagement ───────────────────────────────
 router.get('/engagement', async (req, res) => {
     try {
-        const { data, error } = await supabase
+        const { eventId } = req.query;
+        let query = supabase
             .from('engagement_logs')
             .select('id, participant_email, activity_type, details, score, timestamp')
             .order('timestamp', { ascending: false });
 
+        // If your table has event_id, you can filter it here
+        // if (eventId) query = query.eq('event_id', eventId);
+
+        const { data, error } = await query;
         if (error) throw error;
 
         const fields = ['id', 'participant_email', 'activity_type', 'details', 'score', 'timestamp'];
@@ -100,11 +111,30 @@ router.get('/engagement', async (req, res) => {
 // ── GET /api/download/events  (event summary with request counts)
 router.get('/events', async (req, res) => {
     try {
-        // Fetch events
-        const { data: events, error: evErr } = await supabase
+        // Read auth token to filter by host
+        const authHeader = req.headers['authorization'];
+        const token = authHeader && authHeader.split(' ')[1];
+        let hostId = null;
+
+        if (token) {
+            const jwt = require('jsonwebtoken');
+            const JWT_SECRET = process.env.JWT_SECRET || 'questbridge_secret_key_change_in_production';
+            try {
+                const decoded = jwt.verify(token, JWT_SECRET);
+                hostId = decoded.id;
+            } catch (e) { }
+        }
+
+        let eventsQuery = supabase
             .from('events')
             .select('id, title, status, start_date, host_name, host_email, max_attendees, is_started, created_at')
             .order('created_at', { ascending: false });
+
+        if (hostId) {
+            eventsQuery = eventsQuery.eq('host_id', hostId);
+        }
+
+        const { data: events, error: evErr } = await eventsQuery;
         if (evErr) throw evErr;
 
         // Fetch request counts grouped by event
@@ -153,7 +183,9 @@ router.get('/events', async (req, res) => {
 // ── GET /api/download/requests  (all join requests) ────────────
 router.get('/requests', async (req, res) => {
     try {
-        const { data, error } = await supabase
+        const { eventId } = req.query;
+
+        let query = supabase
             .from('join_requests')
             .select(`
                 id,
@@ -166,6 +198,12 @@ router.get('/requests', async (req, res) => {
                 events (title)
             `)
             .order('created_at', { ascending: false });
+
+        if (eventId) {
+            query = query.eq('event_id', eventId);
+        }
+
+        const { data, error } = await query;
         if (error) throw error;
 
         const rows = (data || []).map(r => ({

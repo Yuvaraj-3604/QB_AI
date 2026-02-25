@@ -8,7 +8,7 @@ const router = express.Router();
 // ── POST /api/auth/signup ──────────────────────────────────────
 router.post('/signup', async (req, res) => {
     try {
-        const { username, email, password, role } = req.body;
+        const { username, email, password, role, phone, date_of_birth, gender } = req.body;
 
         if (!email || !password) {
             return res.status(400).json({ error: 'Email and password are required.' });
@@ -21,8 +21,16 @@ router.post('/signup', async (req, res) => {
 
         const { data, error } = await supabase
             .from('users')
-            .insert([{ username: username || '', email, password: hashedPassword, role: userRole }])
-            .select('id, email, username, role, created_at')
+            .insert([{
+                username: username || '',
+                email,
+                password: hashedPassword,
+                role: userRole,
+                phone: phone || null,
+                date_of_birth: date_of_birth || null,
+                gender: gender || null
+            }])
+            .select('id, email, username, role, phone, date_of_birth, gender, created_at')
             .single();
 
         if (error) {
@@ -52,7 +60,7 @@ router.post('/login', async (req, res) => {
 
         const { data: user, error } = await supabase
             .from('users')
-            .select('id, email, username, password, role, created_at')
+            .select('id, email, username, password, role, phone, date_of_birth, gender, created_at')
             .eq('email', email)
             .single();
 

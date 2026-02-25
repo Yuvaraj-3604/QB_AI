@@ -88,7 +88,8 @@ router.get('/all', requireHost, async (req, res) => {
             .from('join_requests')
             .select(`
                 *,
-                events (title)
+                events (title),
+                users:user_id(username, email)
             `)
             .in('event_id', eventIds)
             .order('created_at', { ascending: false });
@@ -117,7 +118,10 @@ router.get('/event/:eventId', requireHost, async (req, res) => {
 
         const { data, error } = await supabase
             .from('join_requests')
-            .select('*')
+            .select(`
+                *,
+                users:user_id(username, email)
+            `)
             .eq('event_id', req.params.eventId)
             .order('created_at', { ascending: false });
 
