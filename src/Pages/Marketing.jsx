@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { base44, api } from '@/api/base44Client';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
@@ -44,6 +44,10 @@ export default function Marketing() {
   const [emailBody, setEmailBody] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
 
+  // Get the logged-in host's username to use as the sender name in emails
+  const currentUser = api.auth.me();
+  const hostName = currentUser?.username || 'The Organizer';
+
   // Default content for templates
   const templateContent = {
     invitation: { subject: "You're Invited!", body: "We are excited to invite you to..." },
@@ -66,17 +70,31 @@ export default function Marketing() {
   });
 
   const { data: registrations = [] } = useQuery({
-    queryKey: ['registrations'],
+    queryKey: ['registrations', selectedEvent],
     queryFn: async () => {
+      if (!selectedEvent) return [];
       try {
-        const res = await fetch(`${API_URL}/api/participants`);
+        const res = await fetch(`${API_URL}/api/requests/event/${selectedEvent}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('authToken')}`
+          }
+        });
         const data = await res.json();
-        return Array.isArray(data) ? data : [];
+        return Array.isArray(data)
+          ? data
+            .filter(r => r.status === 'approved')
+            .map(r => ({
+              email: r.users?.email || r.user_email,
+              name: r.users?.username || r.user_name || 'Attendee'
+            }))
+            .filter(r => r.email)
+          : [];
       } catch (e) {
         console.error(e);
         return [];
       }
-    }
+    },
+    enabled: !!selectedEvent
   });
 
   const generateEmail = async () => {
@@ -87,60 +105,67 @@ export default function Marketing() {
 
     setIsGenerating(true);
 
-    const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `Generate a professional ${selectedTemplate} email for an event with the following details:
-        Event Title: ${event.title}
-        Event Type: ${event.event_type}
-        Date: ${event.start_date}
-        Location: ${event.location || 'Virtual'}
-        Description: ${event.description || 'No description'}
-        
-        Generate a subject line and email body that is professional, engaging, and encourages action.`,
-      response_json_schema: {
-        type: 'object',
-        properties: {
-          subject: { type: 'string' },
-          body: { type: 'string' }
-        }
-      }
-    });
+    try {
+      const res = await fetch(`${API_URL}/api/ai/generate-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        },
+        body: JSON.stringify({
+          eventDetails: event,
+          templateType: selectedTemplate,
+          hostName
+        })
+      });
 
-    setEmailSubject(result.subject);
-    setEmailBody(result.body);
-    setIsGenerating(false);
+      if (!res.ok) throw new Error('Failed to generate email via AI.');
+      const data = await res.json();
+
+      setEmailSubject(data.subject || 'Event Update');
+      setEmailBody(data.body || 'Please join our event.');
+    } catch (error) {
+      toast({
+        title: "Generation Failed",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const [isSending, setIsSending] = useState(false);
 
   const sendEmails = async () => {
-    console.log('Sending to:', `${API_URL}/api/marketing/send`);
-    if (!emailSubject || !emailBody) return;
+    if (!emailSubject || !emailBody || registrations.length === 0) return;
+
+
 
     setIsSending(true);
     toast({
       title: "Sending Emails...",
-      description: "Please wait while we dispatch your campaign.",
+      description: `Dispatching campaign to ${registrations.length} approved recipients...`,
     });
 
     try {
-      const response = await fetch(`${API_URL}/api/marketing/send`, {
+      const res = await fetch(`${API_URL}/api/marketing/send`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           subject: emailSubject,
           body: emailBody,
-          eventId: selectedEvent
-        }),
+          recipients: registrations,  // [{email, name}]
+          hostName
+        })
       });
 
-      const data = await response.json();
+      const data = await res.json();
 
-      if (response.ok) {
+      if (res.ok) {
         toast({
-          title: "Emails Sent!",
-          description: `Successfully sent ${data.recipientCount} emails.`
+          title: "Campaign Sent! ✅",
+          description: `Successfully sent to ${data.recipientCount} recipients.`
         });
       } else {
         throw new Error(data.error || 'Failed to send emails');
@@ -156,9 +181,8 @@ export default function Marketing() {
     }
   };
 
-  // For this demo, we assume all participants belong to the selected event (or any event)
-  // since our simple backend doesn't store event_id mapping yet.
   const recipientCount = registrations.length;
+
 
   return (
     <div className="min-h-screen bg-gray-50">

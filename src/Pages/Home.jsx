@@ -2,7 +2,7 @@ import React from 'react';
 import HeroSection from '@/Components/Landing/HeroSection';
 import TrustedSection from '@/Components/Landing/TrustedSection';
 import FeaturesSection from '@/Components/Landing/FeaturesSection';
-import CTASection from '@/Components/Landing/CTASection';
+// import CTASection from '@/Components/Landing/CTASection';
 import Footer from '@/Components/Landing/Footer';
 
 export default function Home() {
@@ -11,7 +11,7 @@ export default function Home() {
       <HeroSection />
       <TrustedSection />
       <FeaturesSection />
-      <CTASection />
+      {/* <CTASection /> */}
       <Footer />
     </div>
   );

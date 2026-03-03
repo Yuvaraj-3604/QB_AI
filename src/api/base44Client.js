@@ -107,6 +107,7 @@ export const api = {
         participation: (eventId) => request('GET', `/api/requests/participation/${eventId}`, null, true),
         updateStatus: (requestId, status, ticket_type) =>
             request('PUT', `/api/requests/${requestId}`, { status, ticket_type }, true),
+        sendCertificate: (requestId) => request('POST', `/api/requests/${requestId}/send-certificate`, null, true),
     },
 
     // ── Participants ────────────────────────────────────────────
@@ -153,6 +154,10 @@ export const api = {
                 })
                 .catch(err => alert(err.message));
         }
+    },
+    // ── Support ────────────────────────────────────────────────
+    support: {
+        sendRequest: (data) => request('POST', '/api/support', data, true),
     },
 };
 

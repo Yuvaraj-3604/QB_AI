@@ -77,22 +77,56 @@ export default function Analytics() {
     .sort((a, b) => b.registrations - a.registrations)
     .slice(0, 5);
 
-  // Monthly trend (mock data - in real scenario would calculate from actual dates)
-  const monthlyData = [
-    { month: 'Jan', events: 0, registrations: 0 },
-    { month: 'Feb', events: 1, registrations: 45 },
-    { month: 'Mar', events: 0, registrations: 0 },
-    { month: 'Apr', events: 0, registrations: 0 },
-    { month: 'May', events: 0, registrations: 0 },
-    { month: 'Jun', events: 0, registrations: 0 }
-  ];
+  // Monthly trend - dynamically calculated from actual registration dates
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const now = new Date();
+  const currentMonthIdx = now.getMonth();
+
+  // Initialize last 6 months
+  const monthlyData = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const mIdx = d.getMonth();
+    monthlyData.push({
+      month: monthNames[mIdx],
+      monthIdx: mIdx,
+      year: d.getFullYear(),
+      registrations: 0,
+      events: 0
+    });
+  }
+
+  // Populate dynamic data
+  registrations.forEach(r => {
+    const d = new Date(r.created_at);
+    const rMonth = d.getMonth();
+    const rYear = d.getFullYear();
+
+    const bucket = monthlyData.find(m => m.monthIdx === rMonth && m.year === rYear);
+    if (bucket) {
+      bucket.registrations++;
+    }
+  });
+
+  events.forEach(e => {
+    const d = new Date(e.created_at);
+    const eMonth = d.getMonth();
+    const eYear = d.getFullYear();
+
+    const bucket = monthlyData.find(m => m.monthIdx === eMonth && m.year === eYear);
+    if (bucket) {
+      bucket.events++;
+    }
+  });
+
+  const currentUser = api.auth.me();
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Sidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
 
       <div className={`transition-all duration-300 ${sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'}`}>
-        <DashboardHeader onMenuClick={() => setSidebarCollapsed(!sidebarCollapsed)} />
+        <DashboardHeader user={currentUser} onMenuClick={() => setSidebarCollapsed(!sidebarCollapsed)} />
 
         <main className="p-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -131,32 +165,24 @@ export default function Analytics() {
               title="Total Events"
               value={totalEvents}
               icon={CalendarDays}
-              trend="up"
-              trendValue={12}
               color="cyan"
             />
             <StatsCard
               title="Total Registrations"
               value={totalRegistrations}
               icon={Users}
-              trend="up"
-              trendValue={24}
               color="purple"
             />
             <StatsCard
               title="Active Events"
               value={activeEvents}
               icon={TrendingUp}
-              trend="up"
-              trendValue={8}
               color="green"
             />
             <StatsCard
               title="Check-ins"
               value={checkIns}
               icon={Eye}
-              trend="up"
-              trendValue={15}
               color="orange"
             />
           </div>

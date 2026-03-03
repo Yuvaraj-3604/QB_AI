@@ -288,4 +288,105 @@ Event Details:
     }
 });
 
+const { buildCertificateHtml, generateCertificatePdf } = require('../utils/certificate');
+
+// ── POST /api/requests/:id/send-certificate (host sends individual cert) ──
+router.post('/:id/send-certificate', requireHost, async (req, res) => {
+    try {
+        // 1. Fetch request and check ownership via event
+        const { data: joinReq, error: reqError } = await supabase
+            .from('join_requests')
+            .select('*, events(title, host_id, host_name)')
+            .eq('id', req.params.id)
+            .single();
+
+        if (reqError || !joinReq) return res.status(404).json({ error: 'Request not found.' });
+        if (joinReq.events.host_id !== req.user.id) {
+            return res.status(403).json({ error: 'You can only send certificates for your own events.' });
+        }
+
+        if (!isEmailConfigured()) {
+            return res.status(400).json({ error: 'Email system not configured.' });
+        }
+
+        // 2. Build and send certificate
+        const transporter = getTransporter();
+        const completionDate = new Date().toLocaleDateString('en-IN', {
+            day: 'numeric', month: 'long', year: 'numeric'
+        });
+
+        const certId = `QB-${joinReq.id.split('-')[0].toUpperCase()}-${Math.floor(Date.now() / 100000).toString(16).toUpperCase()}`;
+        const htmlContent = buildCertificateHtml(
+            joinReq.user_name || 'Participant',
+            joinReq.events.title,
+            completionDate,
+            joinReq.events.host_name || 'Organizer',
+            certId
+        );
+
+        const pdfBuffer = await generateCertificatePdf(htmlContent);
+
+        await transporter.sendMail({
+            from: `"QuestBridge AI" <${process.env.EMAIL_USER}>`,
+            to: joinReq.user_email,
+            subject: `Participation Certificate: ${joinReq.events.title}`,
+            text: `Hello, here is your participation certificate for the event "${joinReq.events.title}" attached as a PDF.`,
+            html: `<p>Hello, here is your official participation certificate for the event <b>"${joinReq.events.title}"</b>.</p>`,
+            attachments: [
+                {
+                    filename: `Certificate_${joinReq.events.title.replace(/\s+/g, '_')}.pdf`,
+                    content: pdfBuffer
+                }
+            ]
+        });
+
+        return res.json({ message: 'Certificate sent successfully!' });
+
+    } catch (error) {
+        console.error('Send certificate error:', error);
+        return res.status(500).json({ error: 'Failed to send certificate.' });
+    }
+});
+
+// ── GET /api/requests/:id/certificate (participant views their own cert) ──
+router.get('/:id/certificate', requireAuth, async (req, res) => {
+    try {
+        const { data: joinReq, error } = await supabase
+            .from('join_requests')
+            .select('*, events(title, host_name, event_type, status)')
+            .eq('id', req.params.id)
+            .single();
+
+        if (error || !joinReq) return res.status(404).json({ error: 'Certificate not found.' });
+
+        // Ensure user owns this request
+        if (joinReq.user_id !== req.user.id) {
+            return res.status(403).json({ error: 'Unauthorized.' });
+        }
+
+        const completionDate = new Date(joinReq.created_at).toLocaleDateString('en-IN', {
+            day: 'numeric', month: 'long', year: 'numeric'
+        });
+
+        const certId = `QB-${joinReq.id.split('-')[0].toUpperCase()}-${Math.floor(new Date(joinReq.created_at).getTime() / 100000).toString(16).toUpperCase()}`;
+        const htmlContent = buildCertificateHtml(
+            joinReq.user_name || 'Participant',
+            joinReq.events.title,
+            completionDate,
+            joinReq.events.host_name || 'Organizer',
+            certId
+        );
+
+        const pdfBuffer = await generateCertificatePdf(htmlContent);
+
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename=Certificate_${joinReq.events.title.replace(/\s+/g, '_')}.pdf`);
+        return res.send(pdfBuffer);
+
+    } catch (err) {
+        console.error('View cert error:', err);
+        return res.status(500).json({ error: 'Failed to generate certificate.' });
+    }
+});
+
 module.exports = router;

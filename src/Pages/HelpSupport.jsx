@@ -9,7 +9,8 @@ import {
     MessageSquare,
     Mail,
     Phone,
-    FileText
+    FileText,
+    Check
 } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
@@ -37,19 +38,23 @@ export default function HelpSupport() {
         message: ''
     });
 
-    const handleSubmit = (e) => {
+    const user = api.auth.me();
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
 
-        // Simulate API call for support ticket
-        setTimeout(() => {
-            setIsSubmitting(false);
+        try {
+            await api.support.sendRequest(formData);
             setSubmitted(true);
             setFormData({ subject: '', category: '', message: '' });
-
-            // Reset success message after 5 seconds
             setTimeout(() => setSubmitted(false), 5000);
-        }, 1500);
+        } catch (error) {
+            console.error('Support submission failed:', error);
+            alert('Failed to send support request. Please try again.');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -57,7 +62,7 @@ export default function HelpSupport() {
             <Sidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
 
             <div className={`flex-1 transition-all duration-300 ${sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'}`}>
-                <DashboardHeader onMenuClick={() => setSidebarCollapsed(!sidebarCollapsed)} />
+                <DashboardHeader user={user} onMenuClick={() => setSidebarCollapsed(!sidebarCollapsed)} />
 
                 <main className="p-6 max-w-5xl mx-auto">
                     <div className="mb-8">
@@ -85,7 +90,7 @@ export default function HelpSupport() {
                                 </div>
                                 <h3 className="font-semibold text-gray-900">Documentation</h3>
                                 <p className="text-sm text-gray-500 mt-1 mb-3">Browse our detailed guides and API documentation.</p>
-                                <a href="#" className="text-sm text-purple-600 font-medium hover:underline">
+                                <a href="https://docs.questbridge.ai" target="_blank" rel="noopener noreferrer" className="text-sm text-purple-600 font-medium hover:underline">
                                     View Documentation
                                 </a>
                             </div>

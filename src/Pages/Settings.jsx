@@ -8,7 +8,8 @@ import {
   Loader2,
   Building,
   Mail,
-  Globe
+  Globe,
+  Trash2
 } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
@@ -129,6 +130,17 @@ export default function Settings() {
     }
   };
 
+  const handleRemovePhoto = () => {
+    const defaultAvatar = '';
+    setUser(prev => ({ ...prev, avatar: defaultAvatar }));
+    setProfileData(prev => ({ ...prev, avatar: defaultAvatar }));
+    updateMutation.mutate({ avatar: defaultAvatar });
+    toast({
+      title: "Photo removed",
+      description: "Your profile photo has been removed."
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Sidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
@@ -182,9 +194,22 @@ export default function Settings() {
                         accept="image/png, image/jpeg, image/gif"
                         onChange={handlePhotoChange}
                       />
-                      <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-                        Change Photo
-                      </Button>
+                      <div className="flex flex-wrap gap-2 items-center">
+                        <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+                          Change Photo
+                        </Button>
+                        {profileData.avatar && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleRemovePhoto}
+                            className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Remove
+                          </Button>
+                        )}
+                      </div>
                       <p className="text-sm text-gray-500 mt-2">JPG, PNG or GIF. Max 2MB.</p>
                     </div>
                   </div>

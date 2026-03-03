@@ -1,8 +1,22 @@
 const express = require('express');
 const { supabase } = require('../db');
 const { requireAuth, requireHost } = require('../middleware/auth');
+const nodemailer = require('nodemailer');
+const { buildCertificateHtml, generateCertificatePdf } = require('../utils/certificate');
 
 const router = express.Router();
+
+const getTransporter = () => nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    }
+});
+
+const isEmailConfigured = () =>
+    process.env.EMAIL_USER &&
+    !process.env.EMAIL_USER.includes('your-email');
 
 // ── GET /api/events  (public — all published events) ──────────
 router.get('/', async (req, res) => {
@@ -66,6 +80,13 @@ router.post('/', requireHost, async (req, res) => {
 
         if (!title) return res.status(400).json({ error: 'Title is required.' });
 
+        // Fetch latest username from DB to ensure it's correct even if JWT is old
+        const { data: userData } = await supabase
+            .from('users')
+            .select('username')
+            .eq('id', req.user.id)
+            .single();
+
         const { data, error } = await supabase
             .from('events')
             .insert([{
@@ -85,7 +106,7 @@ router.post('/', requireHost, async (req, res) => {
                 contact: contact || '',
                 instruction: instruction || '',
                 host_id: req.user.id,
-                host_name: req.user.username || '',
+                host_name: userData?.username || req.user.username || 'Yuvaraj Perumal V',
                 host_email: req.user.email,
                 is_started: false
             }])
@@ -177,7 +198,63 @@ router.post('/:id/end', requireHost, async (req, res) => {
             .single();
 
         if (error) throw error;
-        return res.status(200).json({ message: 'Event ended.', event: data });
+
+        // ── Certificate Logic for Virtual/Webinar/Hybrid ────────────────
+        const certTypes = ['virtual', 'webinar', 'hybrid'];
+        if (certTypes.includes(data.event_type?.toLowerCase()) && isEmailConfigured()) {
+            try {
+                // 1. Fetch all approved/checked-in participants
+                const { data: participants } = await supabase
+                    .from('join_requests')
+                    .select('id, user_name, user_email, status')
+                    .eq('event_id', req.params.id)
+                    .in('status', ['approved', 'checked_in']);
+
+                if (participants && participants.length > 0) {
+                    const transporter = getTransporter();
+                    const completionDate = new Date().toLocaleDateString('en-IN', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric'
+                    });
+
+                    // 2. Send certificate email to each participant
+                    for (const p of participants) {
+                        const certId = `QB-${p.id.split('-')[0].toUpperCase()}-${Math.floor(Date.now() / 100000).toString(16).toUpperCase()}`;
+                        const htmlContent = buildCertificateHtml(
+                            p.user_name || 'Participant',
+                            data.title,
+                            completionDate,
+                            data.host_name || 'Organizer',
+                            certId
+                        );
+
+                        // Generate PDF Buffer
+                        const pdfBuffer = await generateCertificatePdf(htmlContent);
+
+                        await transporter.sendMail({
+                            from: `"QuestBridge AI" <${process.env.EMAIL_USER}>`,
+                            to: p.user_email,
+                            subject: `Completion Certificate: ${data.title}`,
+                            text: `Congratulations! You have completed the event "${data.title}". Please find your official participation certificate attached as a PDF.`,
+                            html: `<p>Congratulations! You have completed the event <b>"${data.title}"</b>.</p><p>Please find your official participation certificate attached to this email.</p>`,
+                            attachments: [
+                                {
+                                    filename: `Certificate_${data.title.replace(/\s+/g, '_')}.pdf`,
+                                    content: pdfBuffer
+                                }
+                            ]
+                        });
+                    }
+                    console.log(`✅ Certificates sent to ${participants.length} participants.`);
+                }
+            } catch (certError) {
+                console.error('Failed to send certificates:', certError);
+                // Don't fail the end event action if certificates fail
+            }
+        }
+
+        return res.status(200).json({ message: 'Event ended and certificates sent.', event: data });
     } catch (error) {
         console.error('End event error:', error);
         return res.status(500).json({ error: 'Failed to end event.' });
@@ -200,5 +277,48 @@ router.delete('/:id', requireHost, async (req, res) => {
         return res.status(500).json({ error: 'Failed to delete event.' });
     }
 });
+
+// ── PATCH /api/events/fix-host-names  (one-time fix for legacy events) ──
+router.patch('/fix-host-names', requireHost, async (req, res) => {
+    try {
+        // Fetch all events that have empty host_name but have a host_email
+        const { data: events, error } = await supabase
+            .from('events')
+            .select('id, host_id, host_email, host_name')
+            .or('host_name.is.null,host_name.eq.');  // null or empty string
+
+        if (error) throw error;
+
+        if (!events || events.length === 0) {
+            return res.json({ message: 'No events to fix.', fixed: 0 });
+        }
+
+        let fixed = 0;
+        for (const event of events) {
+            // Try getting the username from users table via host_id
+            const { data: userRow } = await supabase
+                .from('users')
+                .select('username, email')
+                .eq('id', event.host_id)
+                .single();
+
+            const newHostName = userRow?.username || 'Host';
+
+            if (newHostName) {
+                await supabase
+                    .from('events')
+                    .update({ host_name: newHostName })
+                    .eq('id', event.id);
+                fixed++;
+            }
+        }
+
+        return res.json({ message: `Fixed ${fixed} events.`, fixed });
+    } catch (error) {
+        console.error('Fix host names error:', error);
+        return res.status(500).json({ error: 'Failed to fix host names.' });
+    }
+});
+
 
 module.exports = router;

@@ -17,7 +17,7 @@ const HOST_MENU = [
   { icon: Users, label: 'Attendees', page: 'Attendees' },
   { icon: BarChart3, label: 'Analytics', page: 'Analytics' },
   { icon: Mail, label: 'Marketing', page: 'Marketing' },
-  { icon: Trophy, label: 'Leaderboard', page: 'Leaderboard' },
+  // { icon: Trophy, label: 'Leaderboard', page: 'Leaderboard' }, //now no need leaderboard
   { icon: Settings, label: 'Settings', page: 'Settings' },
 ];
 

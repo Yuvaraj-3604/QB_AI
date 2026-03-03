@@ -147,6 +147,21 @@ export default function EventDetails() {
     onError: (err) => alert(`Failed to delete: ${err.message}`)
   });
 
+  const sendCertificateMutation = useMutation({
+    mutationFn: (id) => api.requests.sendCertificate(id),
+    onSuccess: () => alert('Certificate sent to attendee successfully!'),
+    onError: (err) => alert(`Failed to send certificate: ${err.message}`)
+  });
+
+  const endEventMutation = useMutation({
+    mutationFn: () => api.events.end(eventId),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['event', eventId]);
+      alert('Event ended and certificates have been sent to participants!');
+    },
+    onError: (err) => alert(`Failed to end event: ${err.message}`)
+  });
+
   const updateEventMutation = useMutation({
     mutationFn: (data) => api.events.update(eventId, data),
     onSuccess: () => {
@@ -350,6 +365,19 @@ export default function EventDetails() {
                         Edit
                       </Button>
                     </Link>
+
+                    {event.status !== 'completed' && event.status !== 'cancelled' && (
+                      <Button
+                        variant="destructive"
+                        onClick={() => {
+                          if (confirm('Are you sure you want to end this event? This will mark it as completed and send participation certificates to all approved attendees.')) {
+                            endEventMutation.mutate();
+                          }
+                        }}
+                      >
+                        End Event
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -578,7 +606,7 @@ export default function EventDetails() {
                                   <DropdownMenuContent align="end">
                                     <DropdownMenuItem
                                       onClick={(e) => {
-                                        e.stopPropagation(); // Ensure event doesn't bubble weirdly
+                                        e.stopPropagation();
                                         updateRegistrationMutation.mutate({ id: reg.id, data: { status: 'approved' } });
                                       }}
                                     >
@@ -592,6 +620,16 @@ export default function EventDetails() {
                                     >
                                       <Check className="w-4 h-4 mr-2" /> Check In
                                     </DropdownMenuItem>
+                                    {(reg.status === 'approved' || reg.status === 'checked_in') && (
+                                      <DropdownMenuItem
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          sendCertificateMutation.mutate(reg.id);
+                                        }}
+                                      >
+                                        <Trophy className="w-4 h-4 mr-2" /> Send Certificate
+                                      </DropdownMenuItem>
+                                    )}
                                     <DropdownMenuItem
                                       onClick={(e) => {
                                         e.stopPropagation();

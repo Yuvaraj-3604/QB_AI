@@ -18,7 +18,7 @@ function signToken(user) {
  */
 function requireAuth(req, res, next) {
     const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1]; // Bearer <token>
+    const token = (authHeader && authHeader.split(' ')[1]) || req.query.token; // Bearer <token> or ?token=<token>
 
     if (!token) {
         return res.status(401).json({ error: 'Authentication required. Please log in.' });

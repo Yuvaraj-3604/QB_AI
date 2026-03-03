@@ -88,10 +88,10 @@ export default function HeroSection() {
           </motion.div>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-12 max-w-xl mx-auto">
-            <Input
+            {/* <Input
               placeholder="Enter your work email"
               className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 h-14 text-lg flex-1"
-            />
+            /> */}
             <Link to="/book-demo">
               <Button className="bg-cyan-500 hover:bg-cyan-600 h-14 px-8 text-lg">
                 Book a Demo

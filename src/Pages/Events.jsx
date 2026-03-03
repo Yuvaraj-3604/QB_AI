@@ -47,7 +47,7 @@ function JoinModal({ event, onClose, onSuccess }) {
           <div className="absolute inset-0 bg-black/40 flex items-end p-4">
             <div>
               <h2 className="text-white font-bold text-lg leading-tight">{event.title}</h2>
-              <p className="text-white/80 text-sm">{event.host_name || 'Host'}</p>
+              <p className="text-white/80 text-sm">{event.host_name || 'Yuvaraj Perumal V'}</p>
             </div>
           </div>
           <button onClick={onClose}
@@ -238,7 +238,9 @@ export default function Events() {
                     {/* Content */}
                     <div className="p-4 flex flex-col flex-1">
                       <h3 className="font-bold text-gray-900 text-base leading-snug mb-1 line-clamp-2">{event.title}</h3>
-                      <p className="text-xs text-gray-500 mb-3">by {event.host_name || 'Unknown Host'}</p>
+                      <p className="text-xs text-gray-500 mb-3">
+                        by {event.host_name || 'Yuvaraj Perumal V'}
+                      </p>
 
                       <div className="space-y-1.5 text-xs text-gray-500 mb-4">
                         {event.start_date && (

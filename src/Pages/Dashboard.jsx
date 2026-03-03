@@ -49,25 +49,25 @@ export default function Dashboard() {
       title: isHost ? 'My Events' : 'Available Events',
       value: myEvents.length,
       icon: CalendarDays,
-      trend: 'up', trendValue: 12, color: 'cyan'
+      color: 'cyan'
     },
     {
       title: isHost ? 'Total Requests' : 'My Requests',
       value: requestsCount,
       icon: Users,
-      trend: 'up', trendValue: 24, color: 'purple'
+      color: 'purple'
     },
     {
       title: 'Active / Live Events',
       value: myEvents.filter(e => e.status === 'published' || e.status === 'ongoing' || e.is_started).length,
       icon: TrendingUp,
-      trend: 'up', trendValue: 8, color: 'green'
+      color: 'green'
     },
     {
       title: 'Upcoming Events',
       value: myEvents.filter(e => e.start_date && new Date(e.start_date) > new Date()).length,
       icon: Clock,
-      trend: 'up', trendValue: 5, color: 'orange'
+      color: 'orange'
     }
   ];
 

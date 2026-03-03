@@ -69,4 +69,70 @@ Do not write anything else, only the JSON.`;
     }
 });
 
+// ── POST /api/ai/generate-email ────────────────────────────
+router.post('/generate-email', requireAuth, async (req, res) => {
+    try {
+        const { eventDetails, templateType, hostName } = req.body;
+        const organizerName = hostName
+            || eventDetails.host_name
+            || 'The Organizer';
+
+        const apiKey = process.env.GROQ_API_KEY;
+        if (!apiKey || !apiKey.startsWith('gsk_') || apiKey.includes('...')) {
+            return res.status(500).json({ error: 'GROQ API key is missing or invalid.' });
+        }
+
+        const prompt = `You are a professional event marketing AI.
+Generate a professional ${templateType} email for an event with the following details:
+Event Title: ${eventDetails.title}
+Event Type: ${eventDetails.event_type}
+Date: ${eventDetails.start_date}
+Location: ${eventDetails.location || 'Virtual'}
+Description: ${eventDetails.description || 'No description'}
+Organizer / Host Name: ${organizerName}
+
+IMPORTANT RULES:
+- Start the greeting with exactly: "Dear [ATTENDEE_NAME],"
+- Use "${organizerName}" as the actual organizer name wherever relevant in the body.
+- End the sign-off with exactly: "Best regards,\n${organizerName}"
+- Do NOT use any bracket placeholders except [ATTENDEE_NAME].
+- The body should be professional, engaging, and encourage action.
+
+Return EXACTLY a JSON object with this schema:
+{
+  "subject": "string",
+  "body": "string"
+}
+Do not include markdown blocks, just the raw JSON.`;
+
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model: "llama-3.3-70b-versatile",
+                messages: [{ role: "user", content: prompt }],
+                temperature: 0.7,
+                response_format: { type: "json_object" }
+            })
+        });
+
+        if (!response.ok) {
+            const errDetails = await response.text();
+            throw new Error(`GROQ API error: ${response.status} ${errDetails}`);
+        }
+
+        const data = await response.json();
+        const content = data.choices[0]?.message?.content || '{}';
+
+        return res.status(200).json(JSON.parse(content));
+    } catch (error) {
+        console.error('GROQ Email Generation Error:', error);
+        return res.status(500).json({ error: 'Failed to generate email content.' });
+    }
+});
+
 module.exports = router;
+
