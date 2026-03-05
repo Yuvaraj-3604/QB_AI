@@ -31,6 +31,11 @@ import MyRequests from '@/Pages/MyRequests';
 import EventParticipation from '@/Pages/EventParticipation';
 import VerifyCertificate from '@/Pages/VerifyCertificate';
 
+// Admin pages
+import AdminDashboard from '@/Pages/AdminDashboard';
+import AdminSupport from '@/Pages/AdminSupport';
+import AdminUsers from '@/Pages/AdminUsers';
+
 import { Toaster } from '@/Components/ui/toaster';
 
 // Protected route wrapper
@@ -38,6 +43,7 @@ function Protected({ children, requireRole }) {
     const user = api.auth.me();
     if (!user) return <Navigate to="/login" replace />;
     if (requireRole && user.role !== requireRole) {
+        if (user.role === 'admin') return <Navigate to="/Admin" replace />;
         return <Navigate to={user.role === 'host' ? '/Dashboard' : '/Events'} replace />;
     }
     return children;
@@ -76,6 +82,11 @@ function App() {
                 <Route path="/MyRequests" element={<Protected requireRole="attendee"><MyRequests /></Protected>} />
                 <Route path="/EventParticipation" element={<Protected requireRole="attendee"><EventParticipation /></Protected>} />
                 <Route path="/VerifyCertificate" element={<Protected requireRole="attendee"><VerifyCertificate /></Protected>} />
+
+                {/* Admin only */}
+                <Route path="/Admin" element={<Protected requireRole="admin"><AdminDashboard /></Protected>} />
+                <Route path="/Admin/Support" element={<Protected requireRole="admin"><AdminSupport /></Protected>} />
+                <Route path="/Admin/Users" element={<Protected requireRole="admin"><AdminUsers /></Protected>} />
 
                 {/* Catch-all */}
                 <Route path="*" element={<Navigate to="/" replace />} />

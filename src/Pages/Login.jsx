@@ -30,7 +30,8 @@ export default function Login() {
         try {
             const user = await api.auth.login(email, password);
             // Redirect based on role
-            navigate(user.role === 'host' ? '/Dashboard' : '/Events');
+            if (user.role === 'admin') navigate('/Admin');
+            else navigate(user.role === 'host' ? '/Dashboard' : '/Events');
         } catch (err) {
             setError(err.message || 'Login failed. Please try again.');
         } finally {

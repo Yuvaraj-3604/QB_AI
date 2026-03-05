@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 const companies = [
-  'Google', 'Microsoft', 'Apple', 'Amazon', 'Meta', 'Netflix', 
+  'Google', 'Microsoft', 'Apple', 'Amazon', 'Meta', 'Netflix',
   'Spotify', 'Airbnb', 'Uber', 'Slack', 'Zoom', 'Salesforce'
 ];
 
@@ -18,7 +18,7 @@ export default function TrustedSection() {
         >
           Trusted by some MNC companies
         </motion.p>
-        
+
         <div className="relative overflow-hidden">
           <div className="flex animate-scroll gap-16">
             {[...companies, ...companies].map((company, index) => (
@@ -35,7 +35,7 @@ export default function TrustedSection() {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         @keyframes scroll {
           0% { transform: translateX(0); }
           100% { transform: translateX(-50%); }

@@ -10,7 +10,9 @@ const corsOptions = {
     origin: function (origin, callback) {
         // Allow requests with no origin (Postman, curl, server-to-server)
         if (!origin) return callback(null, true);
-        if (allowedOrigins.includes(origin)) {
+
+        // Allow Vercel preview/production domains
+        if (origin.endsWith('.vercel.app') || allowedOrigins.includes(origin)) {
             return callback(null, true);
         }
         callback(new Error(`CORS: Origin ${origin} not allowed`));

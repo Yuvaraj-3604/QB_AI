@@ -24,7 +24,7 @@ export default function DashboardHeader({ user, onMenuClick }) {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('currentUser');
+    api.auth.logout();
     navigate('/login');
   };
 

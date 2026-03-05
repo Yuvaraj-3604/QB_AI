@@ -64,6 +64,7 @@ export const api = {
         isLoggedIn: () => !!getToken() && !!getStoredUser(),
         isHost: () => getStoredUser()?.role === 'host',
         isAttendee: () => getStoredUser()?.role === 'attendee',
+        isAdmin: () => getStoredUser()?.role === 'admin',
     },
 
     // ── AI ─────────────────────────────────────────────────────
@@ -158,6 +159,15 @@ export const api = {
     // ── Support ────────────────────────────────────────────────
     support: {
         sendRequest: (data) => request('POST', '/api/support', data, true),
+        getMyRequests: () => request('GET', '/api/support/my', null, true),
+    },
+    // ── Admin ──────────────────────────────────────────────────
+    admin: {
+        getStats: () => request('GET', '/api/admin/stats', null, true),
+        listUsers: () => request('GET', '/api/admin/users', null, true),
+        deleteUser: (id) => request('DELETE', `/api/admin/users/${id}`, null, true),
+        listTickets: () => request('GET', '/api/admin/tickets', null, true),
+        replyTicket: (id, reply) => request('PUT', `/api/admin/tickets/${id}/reply`, { reply }, true),
     },
 };
 

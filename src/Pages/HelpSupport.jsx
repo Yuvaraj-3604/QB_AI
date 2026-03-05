@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -37,8 +37,27 @@ export default function HelpSupport() {
         category: '',
         message: ''
     });
+    const [myTickets, setMyTickets] = useState([]);
+    const [loadingHistory, setLoadingHistory] = useState(false);
 
     const user = api.auth.me();
+
+    useEffect(() => {
+        if (user) fetchSupportHistory();
+    }, []);
+
+    const fetchSupportHistory = async () => {
+        setLoadingHistory(true);
+        try {
+            // We'll add this to base44Client
+            const data = await api.support.getMyRequests();
+            setMyTickets(data);
+        } catch (error) {
+            console.error('Failed to fetch history:', error);
+        } finally {
+            setLoadingHistory(false);
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -48,6 +67,7 @@ export default function HelpSupport() {
             await api.support.sendRequest(formData);
             setSubmitted(true);
             setFormData({ subject: '', category: '', message: '' });
+            fetchSupportHistory(); // Refresh history
             setTimeout(() => setSubmitted(false), 5000);
         } catch (error) {
             console.error('Support submission failed:', error);
@@ -79,8 +99,8 @@ export default function HelpSupport() {
                                 </div>
                                 <h3 className="font-semibold text-gray-900">Email Support</h3>
                                 <p className="text-sm text-gray-500 mt-1 mb-3">Drop us an email. We usually reply within 24 hours.</p>
-                                <a href="mailto:support@questbridge.ai" className="text-sm text-cyan-600 font-medium hover:underline">
-                                    support@questbridge.ai
+                                <a href="mailto:admin.qb.ai@gmail.com" className="text-sm text-cyan-600 font-medium hover:underline">
+                                    admin.qb.ai@gmail.com
                                 </a>
                             </div>
 
@@ -186,6 +206,66 @@ export default function HelpSupport() {
                                 </form>
                             </div>
                         </div>
+                    </div>
+
+                    {/* Support History Section */}
+                    <div className="mt-12">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="bg-slate-100 p-2 rounded-lg text-slate-600">
+                                <FileText className="w-5 h-5" />
+                            </div>
+                            <h2 className="text-xl font-bold text-gray-900">My Support History</h2>
+                        </div>
+
+                        {loadingHistory ? (
+                            <div className="text-center py-12">
+                                <div className="w-8 h-8 border-4 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin mx-auto" />
+                                <p className="text-gray-500 mt-4 font-medium">Loading your requests...</p>
+                            </div>
+                        ) : myTickets.length > 0 ? (
+                            <div className="space-y-4">
+                                {myTickets.map(ticket => (
+                                    <div key={ticket.id} className={`p-6 rounded-2xl border bg-white shadow-sm transition-all hover:shadow-md ${ticket.status === 'resolved' ? 'border-green-100' : 'border-gray-100'}`}>
+                                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${ticket.status === 'resolved' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                                                    }`}>
+                                                    {ticket.status}
+                                                </div>
+                                                <span className="text-xs text-gray-400 font-medium">
+                                                    {new Date(ticket.created_at).toLocaleDateString()}
+                                                </span>
+                                            </div>
+                                            <span className="text-xs font-semibold px-2 py-1 bg-slate-100 text-slate-600 rounded uppercase">
+                                                {ticket.category}
+                                            </span>
+                                        </div>
+                                        <h3 className="font-bold text-gray-900 mb-2">{ticket.subject}</h3>
+                                        <p className="text-sm text-gray-600 line-clamp-2 md:line-clamp-none">{ticket.message}</p>
+
+                                        {ticket.reply && (
+                                            <div className="mt-4 p-4 rounded-xl bg-cyan-50 border border-cyan-100">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <div className="w-6 h-6 rounded-full bg-cyan-500 flex items-center justify-center">
+                                                        <Check className="w-3 h-3 text-white" />
+                                                    </div>
+                                                    <span className="text-xs font-bold text-cyan-700">Official Admin Response</span>
+                                                </div>
+                                                <p className="text-sm text-cyan-800 italic">{ticket.reply}</p>
+                                                <div className="text-[10px] text-cyan-600 mt-2 font-medium">
+                                                    Replied on {new Date(ticket.replied_at).toLocaleDateString()}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="bg-white rounded-2xl border border-dashed border-gray-300 p-12 text-center">
+                                <HelpCircle className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                                <p className="text-gray-500 font-medium">You haven't submitted any support requests yet.</p>
+                            </div>
+                        )}
                     </div>
                 </main>
             </div>

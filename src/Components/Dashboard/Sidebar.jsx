@@ -4,7 +4,7 @@ import { createPageUrl } from '@/utils';
 import {
   LayoutDashboard, CalendarDays, Users, Settings, BarChart3,
   Mail, HelpCircle, Plus, ChevronLeft, Trophy, Brain,
-  Activity, ClipboardList, Ticket, Video, ShieldCheck
+  Activity, ClipboardList, Ticket, Video, ShieldCheck, LifeBuoy
 } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { cn } from '@/lib/utils';
@@ -28,12 +28,20 @@ const ATTENDEE_MENU = [
   { icon: Settings, label: 'Settings', page: 'Settings' },
 ];
 
+const ADMIN_MENU = [
+  { icon: LayoutDashboard, label: 'Admin Panel', page: 'Admin' },
+  { icon: LifeBuoy, label: 'Support Queue', page: 'Admin/Support' },
+  { icon: Users, label: 'Manage Users', page: 'Admin/Users' },
+  { icon: Settings, label: 'Settings', page: 'Settings' },
+];
+
 export default function Sidebar({ collapsed, onToggle }) {
   const location = useLocation();
   const currentPath = location.pathname;
   const user = api.auth.me();
   const isHost = user?.role === 'host';
-  const menuItems = isHost ? HOST_MENU : ATTENDEE_MENU;
+  const isAdmin = user?.role === 'admin';
+  const menuItems = isAdmin ? ADMIN_MENU : (isHost ? HOST_MENU : ATTENDEE_MENU);
 
   return (
     <aside className={cn(
@@ -97,8 +105,8 @@ export default function Sidebar({ collapsed, onToggle }) {
           <div className="mb-2 px-4 py-2">
             <p className="text-xs text-slate-500">Signed in as</p>
             <p className="text-xs text-slate-300 font-medium truncate">{user?.email || ''}</p>
-            <span className={`text-xs font-semibold ${isHost ? 'text-cyan-400' : 'text-purple-400'}`}>
-              {isHost ? '⭐ Host' : '🎟 Attendee'}
+            <span className={`text - xs font - semibold ${isAdmin ? 'text-red-400' : (isHost ? 'text-cyan-400' : 'text-purple-400')} `}>
+              {isAdmin ? '🛡 Admin' : (isHost ? '⭐ Host' : '🎟 Attendee')}
             </span>
           </div>
         )}

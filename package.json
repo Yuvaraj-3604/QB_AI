@@ -23,6 +23,7 @@
         "dotenv": "^17.3.1",
         "express": "^5.2.1",
         "framer-motion": "^11.13.1",
+        "html-pdf-node": "^1.0.8",
         "jsonwebtoken": "^9.0.3",
         "lucide-react": "^0.468.0",
         "nodemailer": "^8.0.1",

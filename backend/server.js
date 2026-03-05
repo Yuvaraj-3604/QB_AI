@@ -13,6 +13,7 @@ const zoomRoutes = require('./routes/zoom');
 const downloadRoutes = require('./routes/download');
 const aiRoutes = require('./routes/ai');
 const supportRoutes = require('./routes/support');
+const adminRoutes = require('./routes/admin');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -51,6 +52,7 @@ app.use('/api/zoom', zoomRoutes);
 app.use('/api/download', downloadRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/support', supportRoutes);
+app.use('/api/admin', adminRoutes);
 
 // ── 404 Handler ────────────────────────────────────────────────
 app.use((_req, res) => {

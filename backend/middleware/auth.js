@@ -57,4 +57,16 @@ function requireAttendee(req, res, next) {
     });
 }
 
-module.exports = { signToken, requireAuth, requireHost, requireAttendee };
+/**
+ * Middleware: require admin role
+ */
+function requireAdmin(req, res, next) {
+    requireAuth(req, res, () => {
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ error: 'Access denied. Admin privileges required.' });
+        }
+        next();
+    });
+}
+
+module.exports = { signToken, requireAuth, requireHost, requireAttendee, requireAdmin };

@@ -4,7 +4,7 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { ArrowRight, Play } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
+import { api } from '@/api/base44Client';
 
 const stats = [
   { value: '10', label: 'Events Created' },
@@ -12,6 +12,13 @@ const stats = [
 ];
 
 const eventTypes = ['In-Person Events', 'Virtual Events', 'Conferences', 'Webinars', 'Hybrid Events'];
+
+const getDashboardLink = () => {
+  const user = api.auth.me();
+  if (!user) return '/Dashboard';
+  if (user.role === 'admin') return '/Admin';
+  return user.role === 'host' ? '/Dashboard' : '/Events';
+};
 
 export default function HeroSection() {
   const [currentType, setCurrentType] = React.useState(0);
@@ -47,7 +54,7 @@ export default function HeroSection() {
         </div>
 
         <div className="flex items-center gap-4">
-          <Link to={createPageUrl('Dashboard')}>
+          <Link to={getDashboardLink()}>
             <Button variant="ghost" className="text-white hover:text-cyan-400 hover:bg-white/10">
               Dashboard
             </Button>
