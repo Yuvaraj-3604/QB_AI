@@ -3,6 +3,7 @@ function buildCertificateHtml(participantName, eventTitle, completionDate, hostN
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
     <style>
         @page {
             size: A4 landscape;
@@ -77,7 +78,7 @@ function buildCertificateHtml(participantName, eventTitle, completionDate, hostN
             font-size: 26px;
         }
         .footer {
-            margin-top: 60px;
+            margin-top: 50px;
             display: flex;
             justify-content: space-around;
             padding: 0 50px;
@@ -85,6 +86,13 @@ function buildCertificateHtml(participantName, eventTitle, completionDate, hostN
         .signature-block {
             text-align: center;
             width: 250px;
+        }
+        .signature-graphic {
+            font-family: 'Great Vibes', cursive;
+            font-size: 32px;
+            color: #1a365d;
+            margin-bottom: -10px;
+            height: 40px;
         }
         .signature-line {
             border-top: 1px solid #1a365d;
@@ -145,21 +153,24 @@ function buildCertificateHtml(participantName, eventTitle, completionDate, hostN
             
             <div class="footer">
                 <div class="signature-block">
+                    <div class="signature-graphic">${hostName}</div>
                     <div class="signature-line"></div>
                     <div class="signature-name">${hostName}</div>
                     <div class="signature-title">Event Organizer</div>
                 </div>
                 <div class="signature-block">
+                    <div class="signature-graphic">Admin.QB.AI</div>
                     <div class="signature-line"></div>
-                    <div class="signature-name">QuestBridge AI</div>
-                    <div class="signature-title">Platform Official</div>
+                    <div class="signature-name">Super Admin</div>
+                    <div class="signature-title">QuestBridge Official</div>
                 </div>
             </div>
             <div class="cert-id">Certificate ID: ${certId}</div>
         </div>
     </div>
 </body>
-</html>`;
+</html>
+`;
 }
 
 const html_to_pdf = require('html-pdf-node');
