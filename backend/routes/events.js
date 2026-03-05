@@ -206,7 +206,7 @@ router.post('/:id/end', requireHost, async (req, res) => {
                 // 1. Fetch all approved/checked-in participants
                 const { data: participants } = await supabase
                     .from('join_requests')
-                    .select('id, user_name, user_email, status')
+                    .select('id, user_name, user_email, status, created_at')
                     .eq('event_id', req.params.id)
                     .in('status', ['approved', 'checked_in']);
 
@@ -220,7 +220,7 @@ router.post('/:id/end', requireHost, async (req, res) => {
 
                     // 2. Send certificate email to each participant
                     for (const p of participants) {
-                        const certId = `QB-${p.id.split('-')[0].toUpperCase()}-${Math.floor(Date.now() / 100000).toString(16).toUpperCase()}`;
+                        const certId = `QB-${p.id.split('-')[0].toUpperCase()}-${Math.floor(new Date(p.created_at).getTime() / 1000).toString(16).toUpperCase()}`;
                         const htmlContent = buildCertificateHtml(
                             p.user_name || 'Participant',
                             data.title,

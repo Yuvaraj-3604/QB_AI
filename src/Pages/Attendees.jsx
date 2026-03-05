@@ -234,6 +234,7 @@ export default function Attendees() {
             </CardContent>
           </Card>
 
+
           {/* Table */}
           <Card>
             <CardContent className="p-0">

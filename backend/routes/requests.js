@@ -311,11 +311,11 @@ router.post('/:id/send-certificate', requireHost, async (req, res) => {
 
         // 2. Build and send certificate
         const transporter = getTransporter();
-        const completionDate = new Date().toLocaleDateString('en-IN', {
+        const completionDate = new Date(joinReq.created_at || Date.now()).toLocaleDateString('en-IN', {
             day: 'numeric', month: 'long', year: 'numeric'
         });
 
-        const certId = `QB-${joinReq.id.split('-')[0].toUpperCase()}-${Math.floor(Date.now() / 100000).toString(16).toUpperCase()}`;
+        const certId = `QB-${joinReq.id.split('-')[0].toUpperCase()}-${Math.floor(new Date(joinReq.created_at || Date.now()).getTime() / 1000).toString(16).toUpperCase()}`;
         const htmlContent = buildCertificateHtml(
             joinReq.user_name || 'Participant',
             joinReq.events.title,
@@ -368,7 +368,8 @@ router.get('/:id/certificate', requireAuth, async (req, res) => {
             day: 'numeric', month: 'long', year: 'numeric'
         });
 
-        const certId = `QB-${joinReq.id.split('-')[0].toUpperCase()}-${Math.floor(new Date(joinReq.created_at).getTime() / 100000).toString(16).toUpperCase()}`;
+        // Use a deterministic certId based on joinReq.id and created_at
+        const certId = `QB-${joinReq.id.split('-')[0].toUpperCase()}-${Math.floor(new Date(joinReq.created_at).getTime() / 1000).toString(16).toUpperCase()}`;
         const htmlContent = buildCertificateHtml(
             joinReq.user_name || 'Participant',
             joinReq.events.title,
@@ -386,6 +387,60 @@ router.get('/:id/certificate', requireAuth, async (req, res) => {
     } catch (err) {
         console.error('View cert error:', err);
         return res.status(500).json({ error: 'Failed to generate certificate.' });
+    }
+});
+
+// ── GET /api/requests/verify/:certId (publicly verify a certificate) ──
+router.get('/verify/:certId', async (req, res) => {
+    try {
+        const { certId } = req.params;
+        const parts = certId.split('-');
+
+        if (parts.length !== 3 || parts[0] !== 'QB') {
+            return res.status(400).json({ error: 'Invalid certificate ID format.' });
+        }
+
+        const prefix = parts[1].toLowerCase();
+        const hexTime = parts[2].toLowerCase();
+
+        // Fetch all join requests and filter by prefix in memory since UUID doesn't support ILIKE without casting
+        const { data: allRequests, error } = await supabase
+            .from('join_requests')
+            .select('*, events(title, start_date, host_name)');
+
+        if (error || !allRequests) {
+            console.error('[Verify] DB Error:', error);
+            return res.status(500).json({ error: 'Database error occurred.' });
+        }
+
+        const requests = allRequests.filter(r => r.id.toLowerCase().startsWith(prefix));
+
+        if (requests.length === 0) {
+            return res.status(404).json({ error: 'Certificate not found.' });
+        }
+
+        // Find the request that matches the hex timestamp
+        const match = requests.find(r => {
+            const rHex = Math.floor(new Date(r.created_at).getTime() / 1000).toString(16).toUpperCase();
+            return rHex === hexTime.toUpperCase();
+        });
+
+        if (!match) {
+            return res.status(404).json({ error: 'Certificate not found or timestamp mismatch.' });
+        }
+
+        return res.json({
+            isValid: true,
+            participantName: match.user_name,
+            participantEmail: match.user_email,
+            eventName: match.events.title,
+            eventDate: match.events.start_date,
+            issuedAt: match.created_at
+        });
+
+    } catch (err) {
+        console.error('Verify cert error:', err);
+        return res.status(500).json({ error: 'Failed to verify certificate.' });
     }
 });
 

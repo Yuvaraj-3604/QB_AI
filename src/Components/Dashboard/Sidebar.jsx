@@ -4,7 +4,7 @@ import { createPageUrl } from '@/utils';
 import {
   LayoutDashboard, CalendarDays, Users, Settings, BarChart3,
   Mail, HelpCircle, Plus, ChevronLeft, Trophy, Brain,
-  Activity, ClipboardList, Ticket, Video
+  Activity, ClipboardList, Ticket, Video, ShieldCheck
 } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { cn } from '@/lib/utils';
@@ -24,6 +24,7 @@ const HOST_MENU = [
 const ATTENDEE_MENU = [
   { icon: CalendarDays, label: 'Browse Events', page: 'Events' },
   { icon: Ticket, label: 'My Events', page: 'MyRequests' },
+  { icon: ShieldCheck, label: 'Verify Certificates', page: 'VerifyCertificate' },
   { icon: Settings, label: 'Settings', page: 'Settings' },
 ];
 

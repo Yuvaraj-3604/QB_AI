@@ -29,6 +29,7 @@ import HostRequests from '@/Pages/HostRequests';
 // Attendee-only pages
 import MyRequests from '@/Pages/MyRequests';
 import EventParticipation from '@/Pages/EventParticipation';
+import VerifyCertificate from '@/Pages/VerifyCertificate';
 
 import { Toaster } from '@/Components/ui/toaster';
 
@@ -74,6 +75,7 @@ function App() {
                 {/* Attendee only */}
                 <Route path="/MyRequests" element={<Protected requireRole="attendee"><MyRequests /></Protected>} />
                 <Route path="/EventParticipation" element={<Protected requireRole="attendee"><EventParticipation /></Protected>} />
+                <Route path="/VerifyCertificate" element={<Protected requireRole="attendee"><VerifyCertificate /></Protected>} />
 
                 {/* Catch-all */}
                 <Route path="*" element={<Navigate to="/" replace />} />
