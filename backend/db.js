@@ -12,7 +12,13 @@ if (!supabaseUrl || !supabaseKey) {
 // Create client or dummy if missing keys (to prevent crash on export)
 const supabase = (supabaseUrl && supabaseKey)
     ? createClient(supabaseUrl, supabaseKey)
-    : { from: () => ({ select: () => ({ eq: () => ({ single: () => Promise.reject(new Error("Supabase is not configured. Please check your Environment Variables.")) }) }) }) };
+    : new Proxy({}, {
+        get: () => {
+            const fail = () => Promise.reject(new Error("Supabase is not configured. Please check your Vercel Environment Variables."));
+            const handler = { get: () => fail, apply: () => fail };
+            return () => new Proxy(() => { }, handler);
+        }
+    });
 
 if (supabaseUrl && supabaseKey) {
     console.log('✅ Supabase client initialized');
