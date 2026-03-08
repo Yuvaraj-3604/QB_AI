@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { api } from '@/api/base44Client';
 import { Bell, Search, Menu } from 'lucide-react';
 import { Input } from '@/Components/ui/input';
 import { Button } from '@/Components/ui/button';

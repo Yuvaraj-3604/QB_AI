@@ -105,7 +105,7 @@ export default function Sidebar({ collapsed, onToggle }) {
           <div className="mb-2 px-4 py-2">
             <p className="text-xs text-slate-500">Signed in as</p>
             <p className="text-xs text-slate-300 font-medium truncate">{user?.email || ''}</p>
-            <span className={`text-xs font-semibold ${isAdmin ? 'text-red-400' : (isHost ? 'text-cyan-400' : 'text-purple-400')}`}>
+            <span className={`text - xs font - semibold ${isAdmin ? 'text-red-400' : (isHost ? 'text-cyan-400' : 'text-purple-400')} `}>
               {isAdmin ? '🛡 Admin' : (isHost ? '⭐ Host' : '🎟 Attendee')}
             </span>
           </div>
