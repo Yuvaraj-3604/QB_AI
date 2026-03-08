@@ -1,6 +1,7 @@
 {
     "version": 2,
-    "buildCommand": "npm install && cd backend && npm install && cd ..",
+    "buildCommand": "npm run build && cd backend && npm install --omit=dev && cd ..",
+    "outputDirectory": "dist",
     "functions": {
         "api/index.js": {
             "memory": 1024,
