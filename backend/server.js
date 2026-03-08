@@ -57,22 +57,34 @@ app.get('/api/health', (_req, res) => {
     });
 });
 
-// ── API Routes ─────────────────────────────────────────────────
-app.use('/api/auth', authRoutes);
-app.use('/api/events', eventRoutes);
-app.use('/api/requests', requestRoutes);
-app.use('/api/participants', participantRoutes);
-app.use('/api/engagement', engagementRoutes);
-app.use('/api/marketing', marketingRoutes);
-app.use('/api/zoom', zoomRoutes);
-app.use('/api/download', downloadRoutes);
-app.use('/api/ai', aiRoutes);
-app.use('/api/support', supportRoutes);
-app.use('/api/admin', adminRoutes);
+// ── API Routes (Dual mounting for Vercel/Local compatibility) ──
+const mount = (path, router) => {
+    app.use(path, router);
+    if (path.startsWith('/api')) {
+        app.use(path.replace('/api', ''), router);
+    }
+};
+
+mount('/api/auth', authRoutes);
+mount('/api/events', eventRoutes);
+mount('/api/requests', requestRoutes);
+mount('/api/participants', participantRoutes);
+mount('/api/engagement', engagementRoutes);
+mount('/api/marketing', marketingRoutes);
+mount('/api/zoom', zoomRoutes);
+mount('/api/download', downloadRoutes);
+mount('/api/ai', aiRoutes);
+mount('/api/support', supportRoutes);
+mount('/api/admin', adminRoutes);
 
 // ── 404 Handler ────────────────────────────────────────────────
-app.use((_req, res) => {
-    res.status(404).json({ error: 'Route not found.' });
+app.use((req, res) => {
+    console.log(`[404] No route matched: ${req.method} ${req.url}`);
+    res.status(404).json({
+        error: 'Route not found.',
+        path: req.url,
+        method: req.method
+    });
 });
 
 // ── Global Error Handler ───────────────────────────────────────
