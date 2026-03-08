@@ -47,6 +47,12 @@ app.get('/api/health', (_req, res) => {
         status: 'ok',
         service: 'QuestBridge AI Backend',
         database: 'Supabase (PostgreSQL)',
+        node_env: process.env.NODE_ENV,
+        diagnostics: {
+            SUPABASE_URL: !!process.env.SUPABASE_URL,
+            SUPABASE_SERVICE_ROLE_KEY: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+            JWT_SECRET: !!process.env.JWT_SECRET
+        },
         timestamp: new Date().toISOString()
     });
 });
