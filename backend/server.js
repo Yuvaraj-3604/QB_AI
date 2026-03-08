@@ -42,11 +42,25 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 
 // ── Health Check ───────────────────────────────────────────────
-app.get('/api/health', (_req, res) => {
+app.get('/api/health', async (_req, res) => {
+    let dbStatus = 'untested';
+    let dbError = null;
+
+    try {
+        const { error } = await supabase.from('users').select('id').limit(1);
+        if (error) throw error;
+        dbStatus = 'success';
+    } catch (err) {
+        dbStatus = 'failed';
+        dbError = err.message;
+    }
+
     res.json({
         status: 'ok',
         service: 'QuestBridge AI Backend',
         database: 'Supabase (PostgreSQL)',
+        db_test: dbStatus,
+        db_error: dbError,
         node_env: process.env.NODE_ENV,
         diagnostics: {
             SUPABASE_URL: !!process.env.SUPABASE_URL,
