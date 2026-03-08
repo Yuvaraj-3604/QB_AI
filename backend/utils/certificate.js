@@ -203,40 +203,38 @@ function buildCertificateHtml(participantName, eventTitle, completionDate, hostN
 `;
 }
 
-const html_to_pdf = require('html-pdf-node');
-
-function generatePdf(htmlContent, options = {}) {
-    let defaultOptions = {
-        format: 'A4',
-        landscape: true,
-        printBackground: true,
-        margin: { top: 0, right: 0, bottom: 0, left: 0 },
-        ...options
-    };
-    let file = { content: htmlContent };
-
-    return new Promise((resolve, reject) => {
-        html_to_pdf.generatePdf(file, defaultOptions, (err, buffer) => {
-            if (err) reject(err);
-            else resolve(buffer);
-        });
-    });
-}
-
-const generateCertificatePdf = (html) => generatePdf(html, { format: 'A4', landscape: true });
-const generateBadgePdf = (html) => generatePdf(html, { width: '500px', height: '600px', landscape: false });
-
-async function generateBadgePng(html) {
-    // Use serverless-compatible Chromium for Vercel/Lambda deployment
+async function getBrowser() {
     const executablePath = await chromium.executablePath();
-
-    const browser = await puppeteer.launch({
+    return puppeteer.launch({
         args: chromium.args,
         defaultViewport: chromium.defaultViewport,
         executablePath,
         headless: chromium.headless,
     });
+}
 
+async function generateCertificatePdf(html) {
+    const browser = await getBrowser();
+    try {
+        const page = await browser.newPage();
+        await page.setViewport({ width: 1123, height: 794 });
+        await page.setContent(html, { waitUntil: 'networkidle0', timeout: 30000 });
+        const buffer = await page.pdf({
+            format: 'A4',
+            landscape: true,
+            printBackground: true,
+            margin: { top: 0, right: 0, bottom: 0, left: 0 }
+        });
+        return buffer;
+    } finally {
+        await browser.close();
+    }
+}
+
+const generateBadgePdf = generateCertificatePdf; // kept for backward compat
+
+async function generateBadgePng(html) {
+    const browser = await getBrowser();
     try {
         const page = await browser.newPage();
         await page.setViewport({ width: 500, height: 600, deviceScaleFactor: 2 });
