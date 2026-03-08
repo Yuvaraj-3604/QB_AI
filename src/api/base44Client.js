@@ -4,7 +4,11 @@
  */
 
 const getBaseUrl = () => {
-    if (import.meta.env.PROD) return import.meta.env.VITE_API_URL || '';
+    // If we're on a .vercel.app domain, use that same domain for /api
+    if (window.location.hostname.includes('vercel.app')) {
+        return `https://${window.location.hostname}`;
+    }
+    // Local development
     return `http://${window.location.hostname}:5000`;
 };
 export const BASE_URL = getBaseUrl();
