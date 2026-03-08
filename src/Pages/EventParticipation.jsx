@@ -173,12 +173,12 @@ export default function EventParticipation() {
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
                                 <Button
-                                    onClick={() => window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/requests/${participation.id}/certificate?token=${localStorage.getItem('authToken')}`, '_blank')}
+                                    onClick={() => window.open(`${import.meta.env.VITE_API_URL || window.location.origin}/api/requests/${participation.id}/certificate?token=${localStorage.getItem('authToken')}`, '_blank')}
                                     className="bg-green-600 hover:bg-green-700 text-white">
                                     <Trophy className="w-4 h-4 mr-2" /> Certificate
                                 </Button>
                                 <Button
-                                    onClick={() => window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/requests/${participation.id}/badge?token=${localStorage.getItem('authToken')}`, '_blank')}
+                                    onClick={() => window.open(`${import.meta.env.VITE_API_URL || window.location.origin}/api/requests/${participation.id}/badge?token=${localStorage.getItem('authToken')}`, '_blank')}
                                     className="bg-indigo-600 hover:bg-indigo-700 text-white">
                                     <Sparkles className="w-4 h-4 mr-2" /> Official Badge
                                 </Button>
