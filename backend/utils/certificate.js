@@ -1,9 +1,6 @@
+const puppeteer = require('puppeteer');
 const fs = require('fs');
 const path = require('path');
-
-// Lazy-loaded dependencies to prevent Vercel boot crashes
-let puppeteer;
-let html_to_pdf;
 
 // Cache the logo base64
 let logoBase64 = '';
@@ -205,7 +202,7 @@ function buildCertificateHtml(participantName, eventTitle, completionDate, hostN
 `;
 }
 
-
+const html_to_pdf = require('html-pdf-node');
 
 function generatePdf(htmlContent, options = {}) {
     let defaultOptions = {
@@ -216,14 +213,6 @@ function generatePdf(htmlContent, options = {}) {
         ...options
     };
     let file = { content: htmlContent };
-
-    if (!html_to_pdf) {
-        try {
-            html_to_pdf = require('html-pdf-node');
-        } catch (err) {
-            return Promise.reject(new Error("PDF Generation is not available in this environment."));
-        }
-    }
 
     return new Promise((resolve, reject) => {
         html_to_pdf.generatePdf(file, defaultOptions, (err, buffer) => {
@@ -237,17 +226,9 @@ const generateCertificatePdf = (html) => generatePdf(html, { format: 'A4', lands
 const generateBadgePdf = (html) => generatePdf(html, { width: '500px', height: '600px', landscape: false });
 
 async function generateBadgePng(html) {
-    if (!puppeteer) {
-        try {
-            puppeteer = require('puppeteer');
-        } catch (err) {
-            throw new Error("Badge Image Generation is not available in this environment.");
-        }
-    }
-
     const browser = await puppeteer.launch({
         headless: "new",
-        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
     try {
         const page = await browser.newPage();

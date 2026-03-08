@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { api, BASE_URL } from '@/api/base44Client';
+import { api } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import {
@@ -12,7 +12,7 @@ import StatsCard from '@/Components/Dashboard/StatsCard';
 import EventCard from '@/Components/Dashboard/EventCard';
 import { Skeleton } from '@/Components/ui/skeleton';
 
-
+const BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:5000');
 
 export default function Dashboard() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);

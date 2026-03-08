@@ -45,11 +45,7 @@ router.post('/signup', async (req, res) => {
 
     } catch (error) {
         console.error('Signup error:', error);
-        return res.status(500).json({
-            error: 'Internal server error.',
-            message: error.message,
-            stack: process.env.NODE_ENV === 'production' ? null : error.stack
-        });
+        return res.status(500).json({ error: 'Internal server error.' });
     }
 });
 
@@ -84,11 +80,7 @@ router.post('/login', async (req, res) => {
 
     } catch (error) {
         console.error('Login error:', error);
-        return res.status(500).json({
-            error: 'Internal server error.',
-            message: error.message,
-            stack: process.env.NODE_ENV === 'production' ? null : error.stack
-        });
+        return res.status(500).json({ error: 'Internal server error.' });
     }
 });
 

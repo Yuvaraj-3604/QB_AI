@@ -3,16 +3,7 @@
  * All requests go to VITE_API_URL (Express backend)
  */
 
-const getBaseUrl = () => {
-    // If we're on a .vercel.app domain, use that same domain for /api
-    if (window.location.hostname.includes('vercel.app')) {
-        return `https://${window.location.hostname}`;
-    }
-    // Local development
-    return `http://${window.location.hostname}:5000`;
-};
-export const BASE_URL = getBaseUrl();
-console.log('🔌 API Base URL (Detected):', BASE_URL);
+const BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:5000');
 
 // ── Token helpers ──────────────────────────────────────────────
 export const getToken = () => localStorage.getItem('authToken');
