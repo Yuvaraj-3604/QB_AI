@@ -1,3 +1,18 @@
+const puppeteer = require('puppeteer');
+const fs = require('fs');
+const path = require('path');
+
+// Cache the logo base64
+let logoBase64 = '';
+try {
+    const logoGap = path.join(__dirname, 'logo.png');
+    if (fs.existsSync(logoGap)) {
+        logoBase64 = fs.readFileSync(logoGap).toString('base64');
+    }
+} catch (err) {
+    console.error('Failed to load logo for certificate:', err);
+}
+
 function buildCertificateHtml(participantName, eventTitle, completionDate, hostName, certId) {
     return `<!DOCTYPE html>
 <html lang="en">
@@ -36,6 +51,7 @@ function buildCertificateHtml(participantName, eventTitle, completionDate, hostN
             border: 5px solid #d4af37;
             box-sizing: border-box;
             background-image: radial-gradient(circle, #fff 0%, #f9f9f9 100%);
+            position: relative;
         }
         .certificate-header {
             color: #1a365d;
@@ -127,17 +143,30 @@ function buildCertificateHtml(participantName, eventTitle, completionDate, hostN
         }
         .cert-id {
             position: absolute;
-            bottom: 25px;
+            bottom: 10px;
             right: 40px;
             font-size: 12px;
             color: #999;
             font-family: monospace;
+        }
+        .logo-container {
+            position: absolute;
+            top: 40px;
+            left: 40px;
+            width: 150px;
+            text-align: left;
+        }
+        .logo-container img {
+            width: 100%;
+            height: auto;
+            object-fit: contain;
         }
     </style>
 </head>
 <body>
     <div class="outer-border">
         <div class="inner-border">
+            ${logoBase64 ? `<div class="logo-container"><img src="data:image/png;base64,${logoBase64}" alt="QuestBridge Logo"></div>` : ''}
             <div class="seal">QB</div>
             <div class="certificate-header">Certificate</div>
             <div class="certificate-subtitle">of Participation</div>
@@ -175,21 +204,51 @@ function buildCertificateHtml(participantName, eventTitle, completionDate, hostN
 
 const html_to_pdf = require('html-pdf-node');
 
-function generateCertificatePdf(htmlContent) {
-    let options = {
+function generatePdf(htmlContent, options = {}) {
+    let defaultOptions = {
         format: 'A4',
         landscape: true,
         printBackground: true,
-        margin: { top: 0, right: 0, bottom: 0, left: 0 }
+        margin: { top: 0, right: 0, bottom: 0, left: 0 },
+        ...options
     };
     let file = { content: htmlContent };
 
     return new Promise((resolve, reject) => {
-        html_to_pdf.generatePdf(file, options, (err, buffer) => {
+        html_to_pdf.generatePdf(file, defaultOptions, (err, buffer) => {
             if (err) reject(err);
             else resolve(buffer);
         });
     });
 }
 
-module.exports = { buildCertificateHtml, generateCertificatePdf };
+const generateCertificatePdf = (html) => generatePdf(html, { format: 'A4', landscape: true });
+const generateBadgePdf = (html) => generatePdf(html, { width: '500px', height: '600px', landscape: false });
+
+async function generateBadgePng(html) {
+    const browser = await puppeteer.launch({
+        headless: "new",
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
+    try {
+        const page = await browser.newPage();
+        await page.setViewport({ width: 500, height: 600, deviceScaleFactor: 2 });
+        await page.setContent(html, { waitUntil: 'networkidle0' });
+
+        const buffer = await page.screenshot({
+            type: 'png',
+            clip: { x: 0, y: 0, width: 500, height: 600 },
+            omitBackground: true
+        });
+        return buffer;
+    } finally {
+        await browser.close();
+    }
+}
+
+module.exports = {
+    buildCertificateHtml,
+    generateCertificatePdf,
+    generateBadgePdf,
+    generateBadgePng
+};

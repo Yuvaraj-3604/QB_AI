@@ -2,7 +2,8 @@ const express = require('express');
 const { supabase } = require('../db');
 const { requireAuth, requireHost } = require('../middleware/auth');
 const nodemailer = require('nodemailer');
-const { buildCertificateHtml, generateCertificatePdf } = require('../utils/certificate');
+const { buildCertificateHtml, generateCertificatePdf, generateBadgePdf, generateBadgePng } = require('../utils/certificate');
+const { buildBadgeHtml } = require('../utils/badgeTemplate');
 
 const router = express.Router();
 
@@ -232,16 +233,44 @@ router.post('/:id/end', requireHost, async (req, res) => {
                         // Generate PDF Buffer
                         const pdfBuffer = await generateCertificatePdf(htmlContent);
 
+                        // ── Generate Badge too ──────────────────────────────
+                        const badgeHtml = buildBadgeHtml(
+                            p.user_name || 'Participant',
+                            'Certified AI Pioneer',
+                            completionDate,
+                            certId,
+                            null,
+                            data // This is the 'events' row with title, etc.
+                        );
+                        const badgePngBuffer = await generateBadgePng(badgeHtml);
+
                         await transporter.sendMail({
                             from: `"QuestBridge AI" <${process.env.EMAIL_USER}>`,
                             to: p.user_email,
-                            subject: `Completion Certificate: ${data.title}`,
-                            text: `Congratulations! You have completed the event "${data.title}". Please find your official participation certificate attached as a PDF.`,
-                            html: `<p>Congratulations! You have completed the event <b>"${data.title}"</b>.</p><p>Please find your official participation certificate attached to this email.</p>`,
+                            subject: `Completion Certificate & Official AI Badge: ${data.title}`,
+                            text: `Congratulations! You have completed the event "${data.title}". Please find your official participation certificate and special AI badge attached.`,
+                            html: `
+                                <div style="font-family: sans-serif; color: #333 text-align: center;">
+                                    <h1 style="color: #1a365d;">Congratulations!</h1>
+                                    <p>You have successfully completed <b>"${data.title}"</b>.</p>
+                                    <p>As a recognition of your achievement, we have attached two items to this email:</p>
+                                    <ul style="list-style-type: none; padding: 0;">
+                                        <li>🎓 <b>Official Certificate:</b> A formal document of participation.</li>
+                                        <li>⭐ <b>Official AI Badge:</b> A high-fidelity badge image for your professional profile.</li>
+                                    </ul>
+                                    <p>Keep up the great work!</p>
+                                    <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+                                    <p style="font-size: 12px; color: #999;">Sent by QuestBridge AI Platform</p>
+                                </div>
+                            `,
                             attachments: [
                                 {
                                     filename: `Certificate_${data.title.replace(/\s+/g, '_')}.pdf`,
                                     content: pdfBuffer
+                                },
+                                {
+                                    filename: `Official_AI_Badge_${p.user_name?.replace(/\s+/g, '_')}.png`,
+                                    content: badgePngBuffer
                                 }
                             ]
                         });

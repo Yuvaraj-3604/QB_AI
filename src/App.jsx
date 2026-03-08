@@ -25,6 +25,7 @@ import Leaderboard from '@/Pages/Leaderboard';
 import AILeaderboardResults from '@/Pages/AILeaderboardResults';
 import ProjectMonitoringFeed from '@/Pages/ProjectMonitoringFeed';
 import HostRequests from '@/Pages/HostRequests';
+import BadgeStudio from '@/Pages/BadgeStudio';
 
 // Attendee-only pages
 import MyRequests from '@/Pages/MyRequests';
@@ -77,6 +78,7 @@ function App() {
                 <Route path="/AIResults" element={<Protected requireRole="host"><AILeaderboardResults /></Protected>} />
                 <Route path="/Monitoring" element={<Protected requireRole="host"><ProjectMonitoringFeed /></Protected>} />
                 <Route path="/HostRequests" element={<Protected requireRole="host"><HostRequests /></Protected>} />
+                <Route path="/BadgeStudio" element={<Protected requireRole="host"><BadgeStudio /></Protected>} />
 
                 {/* Attendee only */}
                 <Route path="/MyRequests" element={<Protected requireRole="attendee"><MyRequests /></Protected>} />

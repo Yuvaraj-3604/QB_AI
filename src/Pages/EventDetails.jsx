@@ -24,7 +24,8 @@ import {
   Briefcase,
   Copy,
   Download,
-  Trophy
+  Trophy,
+  Sparkles
 } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Badge } from '@/Components/ui/badge';
@@ -151,6 +152,12 @@ export default function EventDetails() {
     mutationFn: (id) => api.requests.sendCertificate(id),
     onSuccess: () => alert('Certificate sent to attendee successfully!'),
     onError: (err) => alert(`Failed to send certificate: ${err.message}`)
+  });
+
+  const sendBadgeMutation = useMutation({
+    mutationFn: (id) => api.requests.sendBadge(id),
+    onSuccess: () => alert('Official Badge sent to attendee successfully!'),
+    onError: (err) => alert(`Failed to send badge: ${err.message}`)
   });
 
   const endEventMutation = useMutation({
@@ -628,6 +635,16 @@ export default function EventDetails() {
                                         }}
                                       >
                                         <Trophy className="w-4 h-4 mr-2" /> Send Certificate
+                                      </DropdownMenuItem>
+                                    )}
+                                    {(reg.status === 'approved' || reg.status === 'checked_in') && (
+                                      <DropdownMenuItem
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          sendBadgeMutation.mutate(reg.id);
+                                        }}
+                                      >
+                                        <Sparkles className="w-4 h-4 mr-2" /> Send Badge
                                       </DropdownMenuItem>
                                     )}
                                     <DropdownMenuItem

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/api/base44Client';
-import { Calendar, MapPin, Clock, Video, CheckCircle, XCircle, Loader2, Tag, ChevronRight, Trophy } from 'lucide-react';
+import { Calendar, MapPin, Clock, Video, CheckCircle, XCircle, Loader2, Tag, ChevronRight, Trophy, Sparkles } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import Sidebar from '@/Components/Dashboard/Sidebar';
 import DashboardHeader from '@/Components/Dashboard/DashboardHeader';
@@ -105,12 +105,20 @@ export default function MyRequests() {
                                                 {req.status === 'approved' ? (
                                                     <div className="flex flex-col gap-2">
                                                         {event?.status === 'completed' ? (
-                                                            <Button
-                                                                onClick={() => window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/requests/${req.id}/certificate?token=${localStorage.getItem('authToken')}`, '_blank')}
-                                                                className="bg-green-600 hover:bg-green-700 text-white"
-                                                            >
-                                                                <Trophy className="w-4 h-4 mr-2" /> Certificate
-                                                            </Button>
+                                                            <div className="flex flex-col gap-2">
+                                                                <Button
+                                                                    onClick={() => window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/requests/${req.id}/certificate?token=${localStorage.getItem('authToken')}`, '_blank')}
+                                                                    className="bg-green-600 hover:bg-green-700 text-white w-full"
+                                                                >
+                                                                    <Trophy className="w-4 h-4 mr-2" /> Certificate
+                                                                </Button>
+                                                                <Button
+                                                                    onClick={() => window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/requests/${req.id}/badge?token=${localStorage.getItem('authToken')}`, '_blank')}
+                                                                    className="bg-indigo-600 hover:bg-indigo-700 text-white w-full"
+                                                                >
+                                                                    <Sparkles className="w-4 h-4 mr-2" /> Official Badge
+                                                                </Button>
+                                                            </div>
                                                         ) : (
                                                             <Button
                                                                 onClick={() => navigate(`/EventParticipation?eventId=${event?.id}`)}

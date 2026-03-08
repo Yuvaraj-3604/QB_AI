@@ -322,6 +322,13 @@ export default function Attendees() {
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   onClick={() => {
+                                    window.open(`${API_URL}/api/requests/${reg.id}/badge?token=${localStorage.getItem('authToken')}`, '_blank');
+                                  }}
+                                >
+                                  <Download className="w-4 h-4 mr-2" /> Download Badge
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => {
                                     if (confirm('Are you sure?')) deleteMutation.mutate(reg.id);
                                   }}
                                   className="text-red-600"

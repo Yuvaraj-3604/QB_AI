@@ -109,6 +109,7 @@ export const api = {
         updateStatus: (requestId, status, ticket_type) =>
             request('PUT', `/api/requests/${requestId}`, { status, ticket_type }, true),
         sendCertificate: (requestId) => request('POST', `/api/requests/${requestId}/send-certificate`, null, true),
+        sendBadge: (requestId) => request('POST', `/api/requests/${requestId}/send-badge`, null, true),
     },
 
     // ── Participants ────────────────────────────────────────────

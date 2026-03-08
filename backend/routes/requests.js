@@ -288,7 +288,8 @@ Event Details:
     }
 });
 
-const { buildCertificateHtml, generateCertificatePdf } = require('../utils/certificate');
+const { buildCertificateHtml, generateCertificatePdf, generateBadgePdf, generateBadgePng } = require('../utils/certificate');
+const { buildBadgeHtml } = require('../utils/badgeTemplate');
 
 // ── POST /api/requests/:id/send-certificate (host sends individual cert) ──
 router.post('/:id/send-certificate', requireHost, async (req, res) => {
@@ -348,6 +349,71 @@ router.post('/:id/send-certificate', requireHost, async (req, res) => {
     }
 });
 
+// ── POST /api/requests/:id/send-badge (host sends individual badge) ──
+router.post('/:id/send-badge', requireHost, async (req, res) => {
+    try {
+        const { data: joinReq, error: reqError } = await supabase
+            .from('join_requests')
+            .select('*, events(title, host_id, host_name)')
+            .eq('id', req.params.id)
+            .single();
+
+        if (reqError || !joinReq) return res.status(404).json({ error: 'Request not found.' });
+        if (joinReq.events.host_id !== req.user.id) {
+            return res.status(403).json({ error: 'You can only send badges for your own events.' });
+        }
+
+        if (!isEmailConfigured()) {
+            return res.status(400).json({ error: 'Email system not configured.' });
+        }
+
+        const transporter = getTransporter();
+        const completionDate = new Date(joinReq.created_at || Date.now()).toLocaleDateString('en-IN', {
+            day: 'numeric', month: 'long', year: 'numeric'
+        });
+
+        const certId = `QB-${joinReq.id.split('-')[0].toUpperCase()}-${Math.floor(new Date(joinReq.created_at || Date.now()).getTime() / 1000).toString(16).toUpperCase()}`;
+
+        const badgeHtml = buildBadgeHtml(
+            joinReq.user_name || 'Participant',
+            'Certified AI Pioneer',
+            completionDate,
+            certId,
+            null,
+            joinReq.events
+        );
+
+        const badgePngBuffer = await generateBadgePng(badgeHtml);
+
+        await transporter.sendMail({
+            from: `"QuestBridge AI" <${process.env.EMAIL_USER}>`,
+            to: joinReq.user_email,
+            subject: `Official AI Badge: ${joinReq.events.title}`,
+            text: `Hello, here is your official participation badge for the event "${joinReq.events.title}" attached as a PNG image.`,
+            html: `
+                <div style="font-family: sans-serif; color: #333 text-align: center;">
+                    <h2 style="color: #1a365d;">Your Official AI Badge is Here!</h2>
+                    <p>Congratulations <b>${joinReq.user_name}</b>!</p>
+                    <p>You have successfully earned the official participation badge for <b>"${joinReq.events.title}"</b>.</p>
+                    <p>Your badge is attached to this email as a high-quality PNG image.</p>
+                </div>
+            `,
+            attachments: [
+                {
+                    filename: `Official_AI_Badge_${joinReq.user_name?.replace(/\s+/g, '_')}.png`,
+                    content: badgePngBuffer
+                }
+            ]
+        });
+
+        return res.json({ message: 'Badge sent successfully!' });
+
+    } catch (error) {
+        console.error('Send badge error:', error);
+        return res.status(500).json({ error: 'Failed to send badge.' });
+    }
+});
+
 // ── GET /api/requests/:id/certificate (participant views their own cert) ──
 router.get('/:id/certificate', requireAuth, async (req, res) => {
     try {
@@ -387,6 +453,49 @@ router.get('/:id/certificate', requireAuth, async (req, res) => {
     } catch (err) {
         console.error('View cert error:', err);
         return res.status(500).json({ error: 'Failed to generate certificate.' });
+    }
+});
+
+// ── GET /api/requests/:id/badge (participant views their own badge) ──
+router.get('/:id/badge', requireAuth, async (req, res) => {
+    try {
+        const { data: joinReq, error } = await supabase
+            .from('join_requests')
+            .select('*, events(title, host_id, host_name, event_type, status)')
+            .eq('id', req.params.id)
+            .single();
+
+        if (error || !joinReq) return res.status(404).json({ error: 'Badge not found.' });
+
+        // Ensure user owns this request OR is the host of the event
+        if (joinReq.user_id !== req.user.id && joinReq.events.host_id !== req.user.id) {
+            return res.status(403).json({ error: 'Unauthorized.' });
+        }
+
+        const completionDate = new Date(joinReq.created_at).toLocaleDateString('en-IN', {
+            day: 'numeric', month: 'long', year: 'numeric'
+        });
+
+        const certId = `QB-${joinReq.id.split('-')[0].toUpperCase()}-${Math.floor(new Date(joinReq.created_at).getTime() / 1000).toString(16).toUpperCase()}`;
+
+        const badgeHtml = buildBadgeHtml(
+            joinReq.user_name || 'Participant',
+            'Certified AI Pioneer',
+            completionDate,
+            certId,
+            null,
+            joinReq.events
+        );
+
+        const pngBuffer = await generateBadgePng(badgeHtml);
+
+        res.setHeader('Content-Type', 'image/png');
+        res.setHeader('Content-Disposition', `attachment; filename=Official_AI_Badge_${joinReq.user_name?.replace(/\s+/g, '_')}.png`);
+        return res.send(pngBuffer);
+
+    } catch (err) {
+        console.error('View badge error:', err);
+        return res.status(500).json({ error: 'Failed to generate badge.' });
     }
 });
 

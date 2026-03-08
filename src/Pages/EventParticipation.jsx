@@ -5,7 +5,8 @@ import { api } from '@/api/base44Client';
 import {
     Maximize2, Minimize2, Clock, Video, XCircle, Tag,
     ArrowLeft, Loader2, Gamepad2, ChevronLeft, ChevronRight,
-    Calendar, MapPin, Users, Wifi, WifiOff, PanelLeftClose, PanelLeftOpen
+    Calendar, MapPin, Users, Wifi, WifiOff, PanelLeftClose, PanelLeftOpen,
+    CheckCircle, Trophy, Sparkles
 } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import Sidebar from '@/Components/Dashboard/Sidebar';
@@ -148,6 +149,46 @@ export default function EventParticipation() {
                         className="bg-cyan-500 hover:bg-cyan-600 text-white">
                         View My Requests
                     </Button>
+                </div>
+            </div>
+        );
+    }
+
+    // ── Event completed — completion screen ──────────────────────
+    if (event?.status === 'completed') {
+        return (
+            <div className="min-h-screen bg-slate-950 flex flex-col">
+                <Sidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
+                <div className={`transition-all duration-300 flex flex-col min-h-screen ${sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'}`}>
+                    <DashboardHeader user={user} onMenuClick={() => setSidebarCollapsed(!sidebarCollapsed)} />
+                    <div className="flex-1 flex items-center justify-center p-6">
+                        <div className="bg-slate-800 border border-slate-700 rounded-2xl p-10 max-w-lg w-full text-center shadow-2xl">
+                            <div className="w-24 h-24 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <CheckCircle className="w-12 h-12 text-green-400" />
+                            </div>
+                            <h2 className="text-2xl font-bold text-white mb-2">Event Completed!</h2>
+                            <p className="text-slate-400 mb-6">
+                                Thank you for participating in <strong className="text-white">{event?.title}</strong>. Your official recognition assets are ready!
+                            </p>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                                <Button
+                                    onClick={() => window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/requests/${participation.id}/certificate?token=${localStorage.getItem('authToken')}`, '_blank')}
+                                    className="bg-green-600 hover:bg-green-700 text-white">
+                                    <Trophy className="w-4 h-4 mr-2" /> Certificate
+                                </Button>
+                                <Button
+                                    onClick={() => window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/requests/${participation.id}/badge?token=${localStorage.getItem('authToken')}`, '_blank')}
+                                    className="bg-indigo-600 hover:bg-indigo-700 text-white">
+                                    <Sparkles className="w-4 h-4 mr-2" /> Official Badge
+                                </Button>
+                            </div>
+
+                            <Button variant="outline" onClick={() => navigate('/MyRequests')} className="text-slate-400 border-slate-700 hover:bg-slate-700">
+                                Back to My Events
+                            </Button>
+                        </div>
+                    </div>
                 </div>
             </div>
         );
