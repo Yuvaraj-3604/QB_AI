@@ -23,14 +23,21 @@ app.use(corsMiddleware);
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Request logger (dev)
-if (process.env.NODE_ENV !== 'production') {
-    app.use((req, _res, next) => {
-        console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+// Manual CORS Pre-flight & Logger
+app.use((req, res, next) => {
+    if (process.env.NODE_ENV !== 'production') {
+        console.log(`[${new Date().toLocaleTimeString()}] ${req.method} ${req.url}`);
         if (req.headers.origin) console.log(`   Origin: ${req.headers.origin}`);
-        next();
-    });
-}
+    }
+
+    if (req.method === 'OPTIONS') {
+        console.log('   (CORS Pre-flight)');
+        return res.sendStatus(204);
+    }
+    next();
+});
+
+
 
 // ── Health Check ───────────────────────────────────────────────
 app.get('/api/health', (_req, res) => {
@@ -68,7 +75,7 @@ app.use((err, _req, res, _next) => {
 
 // ── Start Server ───────────────────────────────────────────────
 if (require.main === module) {
-    const server = app.listen(PORT, () => {
+    const server = app.listen(PORT, '0.0.0.0', () => {
         console.log(`\n🚀 QuestBridge AI Backend`);
         console.log(`   Running on  → http://localhost:${PORT}`);
         console.log(`   Health      → http://localhost:${PORT}/api/health`);

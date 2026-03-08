@@ -8,10 +8,20 @@ const allowedOrigins = [
 ].filter(Boolean);
 
 const corsOptions = {
-    origin: true,
+    origin: function (origin, callback) {
+        // Allow requests with no origin (Postman, curl)
+        if (!origin) return callback(null, true);
+
+        // Match localhost/127.0.0.1 or anything from the user
+        if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+            return callback(null, true);
+        }
+        callback(null, true); // Still allow others while debugging
+    },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true
+    allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept'],
+    credentials: true,
+    optionsSuccessStatus: 204
 };
 
 module.exports = cors(corsOptions);

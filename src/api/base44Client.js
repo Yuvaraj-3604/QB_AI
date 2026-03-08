@@ -3,7 +3,8 @@
  * All requests go to VITE_API_URL (Express backend)
  */
 
-const BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:5000');
+const BASE_URL = 'http://127.0.0.1:5000'; // Hardcoded for debugging connection issues
+console.log('🔌 API Base URL (Forced):', BASE_URL);
 
 // ── Token helpers ──────────────────────────────────────────────
 export const getToken = () => localStorage.getItem('authToken');
