@@ -57,8 +57,8 @@ app.get('/api/health', async (_req, res) => {
 
     res.json({
         status: 'ok',
-        version: '2.0.0',
-        service: 'QuestBridge AI Backend (v2)',
+        version: '2.1.0',
+        service: 'QuestBridge AI Backend (v2.1)',
         database: 'Supabase (PostgreSQL)',
         db_test: dbStatus,
         db_error: dbError,

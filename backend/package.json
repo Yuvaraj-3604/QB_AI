@@ -1,6 +1,7 @@
 {
   "name": "questbridge-backend",
   "version": "1.0.0",
+  "type": "commonjs",
   "description": "QuestBridge AI — Express.js + Supabase Backend API",
   "main": "server.js",
   "scripts": {
