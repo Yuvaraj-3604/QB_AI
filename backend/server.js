@@ -26,7 +26,8 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 // Request logger (dev)
 if (process.env.NODE_ENV !== 'production') {
     app.use((req, _res, next) => {
-        console.log(`  ${req.method} ${req.url}`);
+        console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+        if (req.headers.origin) console.log(`   Origin: ${req.headers.origin}`);
         next();
     });
 }
@@ -67,11 +68,20 @@ app.use((err, _req, res, _next) => {
 
 // ── Start Server ───────────────────────────────────────────────
 if (require.main === module) {
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, () => {
         console.log(`\n🚀 QuestBridge AI Backend`);
         console.log(`   Running on  → http://localhost:${PORT}`);
         console.log(`   Health      → http://localhost:${PORT}/api/health`);
         console.log(`   Database    → Supabase (PostgreSQL)\n`);
+    });
+
+    server.on('error', (err) => {
+        if (err.code === 'EADDRINUSE') {
+            console.error(`❌ Error: Port ${PORT} is already in use.`);
+            process.exit(1);
+        } else {
+            console.error('❌ Server error:', err);
+        }
     });
 }
 
