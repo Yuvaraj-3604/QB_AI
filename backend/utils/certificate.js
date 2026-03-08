@@ -1,4 +1,5 @@
-const puppeteer = require('puppeteer');
+const chromium = require('@sparticuz/chromium');
+const puppeteer = require('puppeteer-core');
 const fs = require('fs');
 const path = require('path');
 
@@ -226,14 +227,20 @@ const generateCertificatePdf = (html) => generatePdf(html, { format: 'A4', lands
 const generateBadgePdf = (html) => generatePdf(html, { width: '500px', height: '600px', landscape: false });
 
 async function generateBadgePng(html) {
+    // Use serverless-compatible Chromium for Vercel/Lambda deployment
+    const executablePath = await chromium.executablePath();
+
     const browser = await puppeteer.launch({
-        headless: "new",
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
+        args: chromium.args,
+        defaultViewport: chromium.defaultViewport,
+        executablePath,
+        headless: chromium.headless,
     });
+
     try {
         const page = await browser.newPage();
         await page.setViewport({ width: 500, height: 600, deviceScaleFactor: 2 });
-        await page.setContent(html, { waitUntil: 'networkidle0' });
+        await page.setContent(html, { waitUntil: 'networkidle0', timeout: 30000 });
 
         const buffer = await page.screenshot({
             type: 'png',
