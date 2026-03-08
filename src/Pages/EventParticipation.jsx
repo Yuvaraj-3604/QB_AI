@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { api } from '@/api/base44Client';
+import { api, BASE_URL } from '@/api/base44Client';
 import {
     Maximize2, Minimize2, Clock, Video, XCircle, Tag,
     ArrowLeft, Loader2, Gamepad2, ChevronLeft, ChevronRight,
@@ -173,12 +173,12 @@ export default function EventParticipation() {
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
                                 <Button
-                                    onClick={() => window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/requests/${participation.id}/certificate?token=${localStorage.getItem('authToken')}`, '_blank')}
+                                    onClick={() => window.open(`${BASE_URL}/api/requests/${participation.id}/certificate?token=${localStorage.getItem('authToken')}`, '_blank')}
                                     className="bg-green-600 hover:bg-green-700 text-white">
                                     <Trophy className="w-4 h-4 mr-2" /> Certificate
                                 </Button>
                                 <Button
-                                    onClick={() => window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/requests/${participation.id}/badge?token=${localStorage.getItem('authToken')}`, '_blank')}
+                                    onClick={() => window.open(`${BASE_URL}/api/requests/${participation.id}/badge?token=${localStorage.getItem('authToken')}`, '_blank')}
                                     className="bg-indigo-600 hover:bg-indigo-700 text-white">
                                     <Sparkles className="w-4 h-4 mr-2" /> Official Badge
                                 </Button>

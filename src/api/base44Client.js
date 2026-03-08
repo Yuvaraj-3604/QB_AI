@@ -7,7 +7,7 @@ const getBaseUrl = () => {
     if (import.meta.env.PROD) return import.meta.env.VITE_API_URL || '';
     return `http://${window.location.hostname}:5000`;
 };
-const BASE_URL = getBaseUrl();
+export const BASE_URL = getBaseUrl();
 console.log('🔌 API Base URL (Detected):', BASE_URL);
 
 // ── Token helpers ──────────────────────────────────────────────
