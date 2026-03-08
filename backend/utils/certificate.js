@@ -1,5 +1,3 @@
-const chromium = require('@sparticuz/chromium');
-const puppeteer = require('puppeteer-core');
 const fs = require('fs');
 const path = require('path');
 
@@ -13,6 +11,7 @@ try {
 } catch (err) {
     console.error('Failed to load logo for certificate:', err);
 }
+
 
 function buildCertificateHtml(participantName, eventTitle, completionDate, hostName, certId) {
     return `<!DOCTYPE html>
@@ -204,6 +203,8 @@ function buildCertificateHtml(participantName, eventTitle, completionDate, hostN
 }
 
 async function getBrowser() {
+    const chromium = require('@sparticuz/chromium');
+    const puppeteer = require('puppeteer-core');
     const executablePath = await chromium.executablePath();
     return puppeteer.launch({
         args: chromium.args,
