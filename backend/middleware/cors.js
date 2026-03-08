@@ -8,18 +8,9 @@ const allowedOrigins = [
 ].filter(Boolean);
 
 const corsOptions = {
-    origin: function (origin, callback) {
-        // Allow requests with no origin (Postman, curl)
-        if (!origin) return callback(null, true);
-
-        // Match localhost/127.0.0.1 or anything from the user
-        if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
-            return callback(null, true);
-        }
-        callback(null, true); // Still allow others while debugging
-    },
+    origin: true, // Allow all origins (mirrors the request's origin)
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept', 'X-Requested-With'],
     credentials: true,
     optionsSuccessStatus: 204
 };

@@ -3,8 +3,12 @@
  * All requests go to VITE_API_URL (Express backend)
  */
 
-const BASE_URL = 'http://127.0.0.1:5000'; // Hardcoded for debugging connection issues
-console.log('🔌 API Base URL (Forced):', BASE_URL);
+const getBaseUrl = () => {
+    if (import.meta.env.PROD) return import.meta.env.VITE_API_URL || '';
+    return `http://${window.location.hostname}:5000`;
+};
+const BASE_URL = getBaseUrl();
+console.log('🔌 API Base URL (Detected):', BASE_URL);
 
 // ── Token helpers ──────────────────────────────────────────────
 export const getToken = () => localStorage.getItem('authToken');

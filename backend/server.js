@@ -19,24 +19,26 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // ── Global Middleware ──────────────────────────────────────────
-app.use(corsMiddleware);
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
-
-// Manual CORS Pre-flight & Logger
+// 1. Logger (absolute top)
 app.use((req, res, next) => {
-    if (process.env.NODE_ENV !== 'production') {
-        console.log(`[${new Date().toLocaleTimeString()}] ${req.method} ${req.url}`);
-        if (req.headers.origin) console.log(`   Origin: ${req.headers.origin}`);
-    }
-
+    console.log(`[${new Date().toLocaleTimeString()}] ${req.method} ${req.url}`);
+    if (req.headers.origin) console.log(`   Origin: ${req.headers.origin}`);
     if (req.method === 'OPTIONS') {
         console.log('   (CORS Pre-flight)');
-        return res.sendStatus(204);
+        // res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+        // res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+        // res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Origin, Accept');
+        // return res.sendStatus(204);
     }
     next();
 });
 
+// 2. CORS
+app.use(corsMiddleware);
+
+// 3. Body Parsers
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 
 // ── Health Check ───────────────────────────────────────────────
