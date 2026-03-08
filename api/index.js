@@ -1,8 +1,10 @@
 /**
- * This file is for Vercel Serverless Function deployment.
- * It imports the main Express app from the backend directory.
+ * Vercel Serverless Function entry point.
+ * This file uses CommonJS (api/package.json overrides root "type":"module").
+ * It imports the Express app from the backend directory.
  */
+'use strict';
+
 const app = require('../backend/server');
 
-// This is required for Vercel serverless functions
 module.exports = app;
