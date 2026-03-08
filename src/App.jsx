@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { api } from '@/api/base44Client';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 
 // Public pages
 import Home from '@/Pages/Home';
@@ -54,6 +55,7 @@ function App() {
     return (
         <Router>
             <Toaster />
+            <SpeedInsights />
             <Routes>
                 {/* Public */}
                 <Route path="/" element={<Home />} />
