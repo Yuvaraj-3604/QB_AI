@@ -25,7 +25,9 @@ import {
   Copy,
   Download,
   Trophy,
-  Sparkles
+  Sparkles,
+  Play,
+  Radio
 } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Badge } from '@/Components/ui/badge';
@@ -99,6 +101,8 @@ export default function EventDetails() {
   const [showShareModal, setShowShareModal] = useState(false);
   const [showZoomModal, setShowZoomModal] = useState(false);
   const [zoomLink, setZoomLink] = useState('');
+  const [zoomMeetingId, setZoomMeetingId] = useState('');
+  const [zoomPassword, setZoomPassword] = useState('');
   const [isGeneratingZoom, setIsGeneratingZoom] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -160,6 +164,16 @@ export default function EventDetails() {
     onError: (err) => alert(`Failed to send badge: ${err.message}`)
   });
 
+  const startEventMutation = useMutation({
+    mutationFn: (zoomData) => api.events.start(eventId, zoomData),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['event', eventId]);
+      setShowZoomModal(false);
+      alert('🚀 Event started! Attendees can now join.');
+    },
+    onError: (err) => alert(`Failed to start event: ${err.message}`)
+  });
+
   const endEventMutation = useMutation({
     mutationFn: () => api.events.end(eventId),
     onSuccess: () => {
@@ -194,17 +208,32 @@ export default function EventDetails() {
   });
 
   const handleZoomAction = () => {
-    if (event.virtual_link && event.virtual_link.includes('zoom.us')) {
-      window.open(event.virtual_link, '_blank');
-    } else {
-      // Default to the provided link if none exists
-      setZoomLink(event.virtual_link || 'https://app.zoom.us/wc/78791925721/start?fromPWA=1&pwd=3mXgk8iV0smy7sFU7ACxJRbqEfbTa4.1');
-      setShowZoomModal(true);
-    }
+    // Pre-fill fields from existing event data
+    setZoomLink(event.virtual_link || event.zoom_meeting_url || '');
+    setZoomMeetingId(event.zoom_meeting_id || '');
+    setZoomPassword(event.zoom_password || '');
+    setShowZoomModal(true);
   };
 
-  const saveZoomLink = () => {
-    updateEventMutation.mutate({ virtual_link: zoomLink });
+  const handleStartEvent = () => {
+    if (!zoomLink && !zoomMeetingId) {
+      alert('Please enter a Zoom Meeting URL or Meeting ID to start the event.');
+      return;
+    }
+    startEventMutation.mutate({
+      zoom_meeting_url: zoomLink,
+      zoom_meeting_id: zoomMeetingId,
+      zoom_password: zoomPassword
+    });
+  };
+
+  const saveZoomLinkOnly = () => {
+    updateEventMutation.mutate({
+      virtual_link: zoomLink,
+      zoom_meeting_url: zoomLink,
+      zoom_meeting_id: zoomMeetingId,
+      zoom_password: zoomPassword
+    });
   };
 
   if (eventLoading) {
@@ -291,37 +320,110 @@ export default function EventDetails() {
                       </DropdownMenuContent>
                     </DropdownMenu>
 
-                    {event.event_type !== 'in_person' && (
-                      <Button
-                        onClick={handleZoomAction}
-                        className="bg-[#2D8CFF] hover:bg-[#1E75E0] text-white border-0"
-                      >
-                        <Video className="w-4 h-4 mr-2" />
-                        {event.virtual_link && event.virtual_link.includes('zoom.us') ? 'Launch Zoom' : 'Host on Zoom'}
-                      </Button>
+                    {/* Start / Zoom button — only show if not completed/cancelled */}
+                    {event.status !== 'completed' && event.status !== 'cancelled' && (
+                      event.is_started ? (
+                        // Event is LIVE: show LIVE badge + zoom link button
+                        <div className="flex items-center gap-2">
+                          <span className="flex items-center gap-1.5 bg-red-500/20 text-red-400 border border-red-500/40 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider">
+                            <Radio className="w-3 h-3 animate-pulse" /> LIVE
+                          </span>
+                          {event.event_type !== 'in_person' && (
+                            <Button
+                              onClick={handleZoomAction}
+                              className="bg-[#2D8CFF] hover:bg-[#1E75E0] text-white border-0"
+                            >
+                              <Video className="w-4 h-4 mr-2" />
+                              Update Zoom
+                            </Button>
+                          )}
+                        </div>
+                      ) : (
+                        // Event NOT started: show Start Event button
+                        event.event_type !== 'in_person' ? (
+                          <Button
+                            onClick={handleZoomAction}
+                            className="bg-green-500 hover:bg-green-600 text-white border-0 font-bold"
+                          >
+                            <Play className="w-4 h-4 mr-2" />
+                            Start Event
+                          </Button>
+                        ) : (
+                          <Button
+                            onClick={() => {
+                              if (confirm('Start this in-person event? Attendees will be notified that the event is live.')) {
+                                startEventMutation.mutate({ zoom_meeting_url: '', zoom_meeting_id: '', zoom_password: '' });
+                              }
+                            }}
+                            className="bg-green-500 hover:bg-green-600 text-white border-0 font-bold"
+                          >
+                            <Play className="w-4 h-4 mr-2" />
+                            Start Event
+                          </Button>
+                        )
+                      )
                     )}
 
+                    {/* Zoom Setup / Start Modal */}
                     <Dialog open={showZoomModal} onOpenChange={setShowZoomModal}>
                       <DialogContent>
                         <DialogHeader>
-                          <DialogTitle>Host on Zoom</DialogTitle>
+                          <DialogTitle>
+                            {event.is_started ? 'Update Zoom Meeting' : '🚀 Start Event on Zoom'}
+                          </DialogTitle>
                         </DialogHeader>
-                        <div className="space-y-4 py-4">
-                          <p className="text-sm text-gray-500">
-                            You can manually enter a Zoom link or generate one automatically using the integrated Zoom API.
-                          </p>
+                        <div className="space-y-4 py-2">
+                          {!event.is_started && (
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-700">
+                              Enter your Zoom details below then click <strong>Start Event</strong>. Attendees in the waiting room will immediately gain access.
+                            </div>
+                          )}
                           <div className="space-y-2">
-                            <Label>Zoom Meeting URL</Label>
+                            <Label>Zoom Meeting URL <span className="text-red-500">*</span></Label>
                             <Input
-                              placeholder="https://zoom.us/j/..."
+                              placeholder="https://zoom.us/j/123456789"
                               value={zoomLink}
                               onChange={(e) => setZoomLink(e.target.value)}
                             />
                           </div>
-                          <div className="flex flex-col gap-2">
-                            <Button onClick={saveZoomLink} className="w-full bg-[#2D8CFF] hover:bg-[#1E75E0]">
-                              Save Zoom Link
-                            </Button>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-2">
+                              <Label>Meeting ID</Label>
+                              <Input
+                                placeholder="123 456 7890"
+                                value={zoomMeetingId}
+                                onChange={(e) => setZoomMeetingId(e.target.value)}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Password (optional)</Label>
+                              <Input
+                                placeholder="abc123"
+                                value={zoomPassword}
+                                onChange={(e) => setZoomPassword(e.target.value)}
+                              />
+                            </div>
+                          </div>
+                          <div className="flex flex-col gap-2 pt-2">
+                            {!event.is_started ? (
+                              <Button
+                                onClick={handleStartEvent}
+                                disabled={startEventMutation.isPending}
+                                className="w-full bg-green-500 hover:bg-green-600 text-white font-bold text-base py-5"
+                              >
+                                <Play className="w-5 h-5 mr-2" />
+                                {startEventMutation.isPending ? 'Starting...' : '🚀 Start Event — Let Attendees In'}
+                              </Button>
+                            ) : (
+                              <Button
+                                onClick={handleStartEvent}
+                                disabled={startEventMutation.isPending}
+                                className="w-full bg-[#2D8CFF] hover:bg-[#1E75E0] text-white"
+                              >
+                                <Video className="w-4 h-4 mr-2" />
+                                {startEventMutation.isPending ? 'Saving...' : 'Update Zoom Details'}
+                              </Button>
+                            )}
                             <div className="relative">
                               <div className="absolute inset-0 flex items-center">
                                 <span className="w-full border-t" />
@@ -332,16 +434,29 @@ export default function EventDetails() {
                             </div>
                             <Button
                               variant="outline"
-                              onClick={() => generateZoomMeetingMutation.mutate()}
-                              disabled={isGeneratingZoom}
-                              className="w-full border-[#2D8CFF] text-[#2D8CFF] hover:bg-blue-50"
+                              onClick={saveZoomLinkOnly}
+                              disabled={updateEventMutation.isPending}
+                              className="w-full"
                             >
-                              {isGeneratingZoom ? 'Generating...' : 'Auto-generate Zoom Meeting'}
+                              {updateEventMutation.isPending ? 'Saving...' : 'Save Link Without Starting'}
                             </Button>
                           </div>
                         </div>
                       </DialogContent>
                     </Dialog>
+
+                    {event.status !== 'completed' && event.status !== 'cancelled' && (
+                      <Button
+                        variant="destructive"
+                        onClick={() => {
+                          if (confirm('Are you sure you want to end this event? This will mark it as completed and send participation certificates to all approved attendees.')) {
+                            endEventMutation.mutate();
+                          }
+                        }}
+                      >
+                        End Event
+                      </Button>
+                    )}
 
                     <Dialog open={showShareModal} onOpenChange={setShowShareModal}>
                       <DialogTrigger asChild>
@@ -372,19 +487,6 @@ export default function EventDetails() {
                         Edit
                       </Button>
                     </Link>
-
-                    {event.status !== 'completed' && event.status !== 'cancelled' && (
-                      <Button
-                        variant="destructive"
-                        onClick={() => {
-                          if (confirm('Are you sure you want to end this event? This will mark it as completed and send participation certificates to all approved attendees.')) {
-                            endEventMutation.mutate();
-                          }
-                        }}
-                      >
-                        End Event
-                      </Button>
-                    )}
                   </div>
                 </div>
               </div>

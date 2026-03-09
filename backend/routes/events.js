@@ -36,6 +36,7 @@ router.get('/', async (req, res) => {
 });
 
 // ── GET /api/events/my  (host: their own events) ──────────────
+// IMPORTANT: This MUST be defined BEFORE /:id so Express doesn't treat 'my' as an event ID
 router.get('/my', requireHost, async (req, res) => {
     try {
         const { data, error } = await supabase
@@ -49,6 +50,49 @@ router.get('/my', requireHost, async (req, res) => {
     } catch (error) {
         console.error('Get my events error:', error);
         return res.status(500).json({ error: 'Failed to fetch your events.' });
+    }
+});
+
+// ── GET /api/events/fix-host-names  (one-time fix for legacy events) ──
+// IMPORTANT: This MUST be defined BEFORE /:id so Express doesn't treat 'fix-host-names' as an event ID
+router.patch('/fix-host-names', requireHost, async (req, res) => {
+    try {
+        // Fetch all events that have empty host_name but have a host_email
+        const { data: events, error } = await supabase
+            .from('events')
+            .select('id, host_id, host_email, host_name')
+            .or('host_name.is.null,host_name.eq.');  // null or empty string
+
+        if (error) throw error;
+
+        if (!events || events.length === 0) {
+            return res.json({ message: 'No events to fix.', fixed: 0 });
+        }
+
+        let fixed = 0;
+        for (const event of events) {
+            // Try getting the username from users table via host_id
+            const { data: userRow } = await supabase
+                .from('users')
+                .select('username, email')
+                .eq('id', event.host_id)
+                .single();
+
+            const newHostName = userRow?.username || 'Host';
+
+            if (newHostName) {
+                await supabase
+                    .from('events')
+                    .update({ host_name: newHostName })
+                    .eq('id', event.id);
+                fixed++;
+            }
+        }
+
+        return res.json({ message: `Fixed ${fixed} events.`, fixed });
+    } catch (error) {
+        console.error('Fix host names error:', error);
+        return res.status(500).json({ error: 'Failed to fix host names.' });
     }
 });
 
@@ -304,48 +348,6 @@ router.delete('/:id', requireHost, async (req, res) => {
     } catch (error) {
         console.error('Delete event error:', error);
         return res.status(500).json({ error: 'Failed to delete event.' });
-    }
-});
-
-// ── PATCH /api/events/fix-host-names  (one-time fix for legacy events) ──
-router.patch('/fix-host-names', requireHost, async (req, res) => {
-    try {
-        // Fetch all events that have empty host_name but have a host_email
-        const { data: events, error } = await supabase
-            .from('events')
-            .select('id, host_id, host_email, host_name')
-            .or('host_name.is.null,host_name.eq.');  // null or empty string
-
-        if (error) throw error;
-
-        if (!events || events.length === 0) {
-            return res.json({ message: 'No events to fix.', fixed: 0 });
-        }
-
-        let fixed = 0;
-        for (const event of events) {
-            // Try getting the username from users table via host_id
-            const { data: userRow } = await supabase
-                .from('users')
-                .select('username, email')
-                .eq('id', event.host_id)
-                .single();
-
-            const newHostName = userRow?.username || 'Host';
-
-            if (newHostName) {
-                await supabase
-                    .from('events')
-                    .update({ host_name: newHostName })
-                    .eq('id', event.id);
-                fixed++;
-            }
-        }
-
-        return res.json({ message: `Fixed ${fixed} events.`, fixed });
-    } catch (error) {
-        console.error('Fix host names error:', error);
-        return res.status(500).json({ error: 'Failed to fix host names.' });
     }
 });
 

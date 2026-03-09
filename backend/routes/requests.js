@@ -175,7 +175,7 @@ router.get('/participation/:eventId', requireAuth, async (req, res) => {
             return res.status(404).json({ error: 'No approved request found for this event.' });
         }
 
-        if (req_data.status !== 'approved') {
+        if (req_data.status !== 'approved' && req_data.status !== 'checked_in') {
             return res.status(403).json({ error: 'Your request has not been approved yet.', status: req_data.status });
         }
 
