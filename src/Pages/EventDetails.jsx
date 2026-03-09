@@ -202,29 +202,40 @@ export default function EventDetails() {
     },
     onSuccess: (data) => {
       setZoomLink(data.meeting_url);
-      updateEventMutation.mutate({ virtual_link: data.meeting_url });
+      setZoomMeetingId(data.meeting_id || '');
+      setZoomPassword(data.password || '');
+      updateEventMutation.mutate({
+        virtual_link: data.meeting_url,
+        zoom_meeting_url: data.meeting_url,
+        zoom_meeting_id: data.meeting_id,
+        zoom_password: data.password
+      });
     },
     onError: (err) => alert(`Error generating meeting: ${err.message}`)
   });
 
-  // Default built-in Zoom link pre-filled for the host
-  const DEFAULT_ZOOM_URL = 'https://app.zoom.us/wc/78791925721/start?fromPWA=1&pwd=3mXgk8iV0smy7sFU7ACxJRbqEfbTa4.1';
-  const DEFAULT_ZOOM_ID = '78791925721';
-  const DEFAULT_ZOOM_PWD = '3mXgk8iV0smy7sFU7ACxJRbqEfbTa4.1';
-
   const handleZoomAction = () => {
-    // Pre-fill with saved event data, or fall back to built-in default link
-    setZoomLink(event.virtual_link || event.zoom_meeting_url || DEFAULT_ZOOM_URL);
-    setZoomMeetingId(event.zoom_meeting_id || DEFAULT_ZOOM_ID);
-    setZoomPassword(event.zoom_password || DEFAULT_ZOOM_PWD);
+    setZoomLink(event.virtual_link || event.zoom_meeting_url || '');
+    setZoomMeetingId(event.zoom_meeting_id || '');
+    setZoomPassword(event.zoom_password || '');
     setShowZoomModal(true);
   };
 
   const handleStartEvent = () => {
     if (!zoomLink && !zoomMeetingId) {
-      alert('Please enter a Zoom Meeting URL or Meeting ID to start the event.');
+      // Automatically generate a new Zoom meeting and start if fields are empty
+      generateZoomMeetingMutation.mutate(undefined, {
+        onSuccess: (data) => {
+          startEventMutation.mutate({
+            zoom_meeting_url: data.meeting_url,
+            zoom_meeting_id: data.meeting_id,
+            zoom_password: data.password
+          });
+        }
+      });
       return;
     }
+
     startEventMutation.mutate({
       zoom_meeting_url: zoomLink,
       zoom_meeting_id: zoomMeetingId,
@@ -380,7 +391,7 @@ export default function EventDetails() {
                         <div className="space-y-4 py-2">
                           {!event.is_started && (
                             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-700">
-                              Enter your Zoom details below then click <strong>Start Event</strong>. Attendees in the waiting room will immediately gain access.
+                              Enter your Zoom details below, or <strong>leave them blank</strong> to automatically generate a new Zoom meeting. Click <strong>Start Event</strong> when ready.
                             </div>
                           )}
                           <div className="space-y-2">
@@ -413,11 +424,11 @@ export default function EventDetails() {
                             {!event.is_started ? (
                               <Button
                                 onClick={handleStartEvent}
-                                disabled={startEventMutation.isPending}
+                                disabled={startEventMutation.isPending || generateZoomMeetingMutation.isPending}
                                 className="w-full bg-green-500 hover:bg-green-600 text-white font-bold text-base py-5"
                               >
                                 <Play className="w-5 h-5 mr-2" />
-                                {startEventMutation.isPending ? 'Starting...' : '🚀 Start Event — Let Attendees In'}
+                                {generateZoomMeetingMutation.isPending ? 'Generating Zoom...' : startEventMutation.isPending ? 'Starting...' : '🚀 Start Event — Let Attendees In'}
                               </Button>
                             ) : (
                               <Button
