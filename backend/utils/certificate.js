@@ -81,25 +81,25 @@ function buildCertificateHtml(participantName, eventTitle, completionDate, hostN
         }
         .participant-name {
             font-family: 'Great Vibes', cursive;
-            font-size: 72px;
+            font-size: 68px;
             color: #d4af37;
-            margin: 0 0 30px 0;
+            margin: 0 0 20px 0;
             display: inline-block;
             border-bottom: 2px solid #d4af37;
             padding-bottom: 5px;
             min-width: 600px;
         }
         .event-info {
-            font-size: 22px;
+            font-size: 20px;
             color: #444;
-            line-height: 1.6;
-            margin: 0 auto 50px auto;
+            line-height: 1.5;
+            margin: 0 auto 30px auto;
             max-width: 800px;
         }
         .event-title {
             font-weight: bold;
             color: #1a365d;
-            font-size: 28px;
+            font-size: 24px;
             display: block;
             margin-top: 5px;
             margin-bottom: 5px;
@@ -107,8 +107,10 @@ function buildCertificateHtml(participantName, eventTitle, completionDate, hostN
         .footer {
             display: flex;
             justify-content: space-between;
-            width: 85%;
-            margin-top: 30px;
+            width: 100%;
+            padding: 0 20px;
+            box-sizing: border-box;
+            margin-top: 10px;
         }
         .signature-block {
             text-align: center;
@@ -164,6 +166,7 @@ function buildCertificateHtml(participantName, eventTitle, completionDate, hostN
             font-size: 11px;
             color: #999;
             font-family: monospace;
+            letter-spacing: 2px;
         }
         .logo-container {
             position: absolute;
@@ -210,7 +213,7 @@ function buildCertificateHtml(participantName, eventTitle, completionDate, hostN
                     <div class="signature-title">QuestBridge Official</div>
                 </div>
             </div>
-            <div class="cert-id">Certificate ID: ${certId}</div>
+            <div class="cert-id">Certificate ID &nbsp;:&nbsp; ${certId ? certId.split('-').join(' - ') : ''}</div>
         </div>
     </div>
 </body>

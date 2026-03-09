@@ -78,6 +78,14 @@ export default function CreateEvent() {
   });
   const [submitAction, setSubmitAction] = useState('save');
 
+  // Helper to properly convert UTC ISO string into local yyyy-MM-ddThh:mm format for datetime-local input
+  const toLocalISOString = (dateStr) => {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return '';
+    return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  };
+
   // Fetch event data if editing
   React.useEffect(() => {
     if (eventId) {
@@ -90,8 +98,8 @@ export default function CreateEvent() {
             event_type: data.event_type || 'in_person',
             category: isCustomCategory ? 'other' : (data.category || 'conference'),
             custom_category: isCustomCategory ? data.category : '',
-            start_date: data.start_date ? data.start_date.slice(0, 16) : '',
-            end_date: data.end_date ? data.end_date.slice(0, 16) : '',
+            start_date: toLocalISOString(data.start_date),
+            end_date: toLocalISOString(data.end_date),
             location: data.location || '',
             virtual_link: data.virtual_link || '',
             max_attendees: data.max_attendees || '',
@@ -128,8 +136,19 @@ export default function CreateEvent() {
     e.preventDefault();
     const status = submitAction === 'publish' ? 'published' : (isEditing ? formData.status : 'draft');
     const finalCategory = formData.category === 'other' && formData.custom_category ? formData.custom_category : formData.category;
-    const { custom_category, ...restFormData } = formData;
-    const dataToSubmit = { ...restFormData, category: finalCategory, status };
+
+    // Parse local datetime string and convert to UTC for consistent backend storage
+    const getUtcString = (localStr) => localStr ? new Date(localStr).toISOString() : null;
+
+    const { custom_category, start_date, end_date, ...restFormData } = formData;
+    const dataToSubmit = {
+      ...restFormData,
+      start_date: getUtcString(start_date),
+      end_date: getUtcString(end_date),
+      category: finalCategory,
+      status
+    };
+
     if (isEditing) updateMutation.mutate(dataToSubmit);
     else createMutation.mutate(dataToSubmit);
   };
