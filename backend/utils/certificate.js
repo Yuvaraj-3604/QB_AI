@@ -234,7 +234,7 @@ async function generateCertificatePdf(html) {
             printBackground: true,
             margin: { top: 0, right: 0, bottom: 0, left: 0 }
         });
-        return buffer;
+        return Buffer.from(buffer);
     } finally {
         await browser.close();
     }
@@ -254,7 +254,7 @@ async function generateBadgePng(html) {
             clip: { x: 0, y: 0, width: 500, height: 600 },
             omitBackground: true
         });
-        return buffer;
+        return Buffer.from(buffer);
     } finally {
         await browser.close();
     }
