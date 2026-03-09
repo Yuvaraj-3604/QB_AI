@@ -47,77 +47,90 @@ function buildCertificateHtml(participantName, eventTitle, completionDate, hostN
         .inner-border {
             width: 100%;
             height: 100%;
-            padding: 40px;
+            padding: 40px 60px;
             border: 5px solid #d4af37;
             box-sizing: border-box;
             background-image: radial-gradient(circle, #fff 0%, #f9f9f9 100%);
             position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1;
         }
         .certificate-header {
             color: #1a365d;
-            font-size: 50px;
-            margin-top: 20px;
-            letter-spacing: 5px;
+            font-size: 54px;
+            letter-spacing: 6px;
             text-transform: uppercase;
+            margin-bottom: 5px;
+            margin-top: -20px;
         }
         .certificate-subtitle {
             font-size: 22px;
             font-style: italic;
             color: #666;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
         }
         .presented-to {
-            font-size: 24px;
-            margin-bottom: 10px;
-            color: #333;
+            font-size: 20px;
+            color: #555;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
         }
         .participant-name {
-            font-size: 64px;
-            font-weight: bold;
+            font-family: 'Great Vibes', cursive;
+            font-size: 72px;
             color: #d4af37;
-            margin: 20px 0;
+            margin: 0 0 30px 0;
             display: inline-block;
             border-bottom: 2px solid #d4af37;
-            padding-bottom: 10px;
-            min-width: 400px;
+            padding-bottom: 5px;
+            min-width: 600px;
         }
         .event-info {
-            font-size: 20px;
+            font-size: 22px;
             color: #444;
             line-height: 1.6;
-            margin: 30px auto;
-            max-width: 700px;
+            margin: 0 auto 50px auto;
+            max-width: 800px;
         }
         .event-title {
             font-weight: bold;
             color: #1a365d;
-            font-size: 26px;
+            font-size: 28px;
+            display: block;
+            margin-top: 5px;
+            margin-bottom: 5px;
         }
         .footer {
-            margin-top: 50px;
             display: flex;
-            justify-content: space-around;
-            padding: 0 50px;
+            justify-content: space-between;
+            width: 85%;
+            margin-top: 20px;
         }
         .signature-block {
             text-align: center;
-            width: 250px;
+            width: 280px;
         }
         .signature-graphic {
             font-family: 'Great Vibes', cursive;
-            font-size: 32px;
+            font-size: 38px;
             color: #1a365d;
-            margin-bottom: -10px;
-            height: 40px;
+            margin-bottom: -15px;
+            height: 45px;
         }
         .signature-line {
-            border-top: 1px solid #1a365d;
-            margin-bottom: 10px;
+            border-top: 1.5px solid #1a365d;
+            margin-bottom: 8px;
         }
         .signature-name {
             font-weight: bold;
             color: #1a365d;
             font-size: 18px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
         .signature-title {
             font-size: 14px;
@@ -128,22 +141,22 @@ function buildCertificateHtml(participantName, eventTitle, completionDate, hostN
             bottom: 40px;
             left: 50%;
             transform: translateX(-50%);
-            width: 120px;
-            height: 120px;
+            width: 140px;
+            height: 140px;
             background: #d4af37;
             border-radius: 50%;
-            opacity: 0.2;
+            opacity: 0.15;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 40px;
+            font-size: 45px;
             color: white;
-            z-index: 0;
+            z-index: -1;
         }
         .cert-id {
             position: absolute;
-            bottom: 10px;
+            bottom: 15px;
             right: 40px;
             font-size: 12px;
             color: #999;
@@ -153,7 +166,7 @@ function buildCertificateHtml(participantName, eventTitle, completionDate, hostN
             position: absolute;
             top: 40px;
             left: 40px;
-            width: 150px;
+            width: 160px;
             text-align: left;
         }
         .logo-container img {
