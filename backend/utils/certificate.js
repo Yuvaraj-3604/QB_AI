@@ -203,15 +203,23 @@ function buildCertificateHtml(participantName, eventTitle, completionDate, hostN
 }
 
 async function getBrowser() {
-    const chromium = require('@sparticuz/chromium');
-    const puppeteer = require('puppeteer-core');
-    const executablePath = await chromium.executablePath();
-    return puppeteer.launch({
-        args: chromium.args,
-        defaultViewport: chromium.defaultViewport,
-        executablePath,
-        headless: chromium.headless,
-    });
+    if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
+        const chromium = require('@sparticuz/chromium');
+        const puppeteer = require('puppeteer-core');
+        const executablePath = await chromium.executablePath();
+        return puppeteer.launch({
+            args: chromium.args,
+            defaultViewport: chromium.defaultViewport,
+            executablePath,
+            headless: chromium.headless,
+        });
+    } else {
+        const puppeteer = require('puppeteer');
+        return puppeteer.launch({
+            headless: 'new',
+            args: ['--no-sandbox', '--disable-setuid-sandbox']
+        });
+    }
 }
 
 async function generateCertificatePdf(html) {
