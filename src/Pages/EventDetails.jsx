@@ -207,11 +207,16 @@ export default function EventDetails() {
     onError: (err) => alert(`Error generating meeting: ${err.message}`)
   });
 
+  // Default built-in Zoom link pre-filled for the host
+  const DEFAULT_ZOOM_URL = 'https://app.zoom.us/wc/78791925721/start?fromPWA=1&pwd=3mXgk8iV0smy7sFU7ACxJRbqEfbTa4.1';
+  const DEFAULT_ZOOM_ID = '78791925721';
+  const DEFAULT_ZOOM_PWD = '3mXgk8iV0smy7sFU7ACxJRbqEfbTa4.1';
+
   const handleZoomAction = () => {
-    // Pre-fill fields from existing event data
-    setZoomLink(event.virtual_link || event.zoom_meeting_url || '');
-    setZoomMeetingId(event.zoom_meeting_id || '');
-    setZoomPassword(event.zoom_password || '');
+    // Pre-fill with saved event data, or fall back to built-in default link
+    setZoomLink(event.virtual_link || event.zoom_meeting_url || DEFAULT_ZOOM_URL);
+    setZoomMeetingId(event.zoom_meeting_id || DEFAULT_ZOOM_ID);
+    setZoomPassword(event.zoom_password || DEFAULT_ZOOM_PWD);
     setShowZoomModal(true);
   };
 
