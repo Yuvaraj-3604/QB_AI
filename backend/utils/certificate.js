@@ -108,18 +108,21 @@ function buildCertificateHtml(participantName, eventTitle, completionDate, hostN
             display: flex;
             justify-content: space-between;
             width: 85%;
-            margin-top: 20px;
+            margin-top: 30px;
         }
         .signature-block {
             text-align: center;
-            width: 280px;
+            width: 320px;
         }
         .signature-graphic {
             font-family: 'Great Vibes', cursive;
-            font-size: 38px;
+            font-size: 36px;
             color: #1a365d;
-            margin-bottom: -15px;
-            height: 45px;
+            height: 50px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            margin-bottom: 5px;
         }
         .signature-line {
             border-top: 1.5px solid #1a365d;
@@ -156,9 +159,9 @@ function buildCertificateHtml(participantName, eventTitle, completionDate, hostN
         }
         .cert-id {
             position: absolute;
-            bottom: 15px;
+            bottom: 20px;
             right: 40px;
-            font-size: 12px;
+            font-size: 11px;
             color: #999;
             font-family: monospace;
         }
