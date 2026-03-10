@@ -17,7 +17,6 @@ import {
     endOfWeek,
     isToday
 } from 'date-fns';
-import emailjs from '@emailjs/browser';
 import { API_URL } from '../config';
 
 const BookDemo = () => {
@@ -81,13 +80,6 @@ const BookDemo = () => {
             meeting_link: "https://meet.google.com/sample-link" // Replace with logic if dynamic link needed
         };
 
-        // TODO: Replace these with your actual EmailJS credentials
-        const SERVICE_ID = 'service_mwgoqf7';
-        const TEMPLATE_ID = 'template_mg1bx1d';
-        const PUBLIC_KEY = '832WdKgLsIe2mjqu9'; // You need to get this from EmailJS dashboard
-
-
-
         // 1. Save to Backend Database
         fetch(`${API_URL}/api/participants`, {
             method: 'POST',
@@ -107,34 +99,8 @@ const BookDemo = () => {
             .then(data => {
                 console.log("Saved to database:", data);
 
-                // 2. Send Email via EmailJS
-                return emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams, PUBLIC_KEY);
-            })
-            .then((response) => {
-                console.log('SUCCESS!', response.status, response.text);
-                setBookingStep('success');
-                setIsSending(false);
-            })
-            .catch((err) => {
-                console.log('FAILED...', err);
-                // Even if DB fails, we might still want to try sending email, or alert user. 
-                // For now, simpler to catch all.
-                const errorMessage = err.text || err.message || 'Unknown error occurred';
-                alert(`Process failed. Error: ${errorMessage}. Please check console.`);
-                setIsSending(false);
-            });
-    };
-
-    const days = eachDayOfInterval({
-        start: startOfWeek(startOfMonth(currentMonth)),
-        end: endOfWeek(endOfMonth(currentMonth))
-    });
-
-    const weekDays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-
-    if (bookingStep === 'success') {
-        const subject = `New Demo Booking: ${formData.firstName} ${formData.lastName}`;
-        const body = `
+                const subject = `Demo Booking Confirmation: ${formData.firstName} ${formData.lastName}`;
+                const body = `
 Dear ${formData.firstName} ${formData.lastName},
 
 Thank you for your interest in Questbridge. This email serves as a formal confirmation that you have successfully registered for a product demo session.
@@ -151,17 +117,44 @@ Source: ${formData.source}
 Notes: ${formData.notes}
 
 Requested Time: ${format(selectedDate, 'M/d/yy')}, ${selectedTime}
-        `.trim();
+`.trim();
 
-        const encodedSubject = encodeURIComponent(subject);
-        const encodedBody = encodeURIComponent(body);
-        const encodedEmail = encodeURIComponent(formData.email);
+                // 2. Send Email via Backend Nodemailer
+                return fetch(`${API_URL}/api/marketing/single-send`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: formData.email,
+                        subject: subject,
+                        body: body
+                    })
+                });
+            })
+            .then(res => {
+                if (!res.ok) throw new Error('Failed to send email');
+                return res.json();
+            })
+            .then((response) => {
+                console.log('SUCCESS!', response);
+                setBookingStep('success');
+                setIsSending(false);
+            })
+            .catch((err) => {
+                console.log('FAILED...', err);
+                const errorMessage = err.message || 'Unknown error occurred';
+                alert(`Process failed. Error: ${errorMessage}. Please check console.`);
+                setIsSending(false);
+            });
+    };
 
-        const gmailLink = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodedEmail}&su=${encodedSubject}&body=${encodedBody}`;
-        const outlookLink = `https://outlook.office.com/mail/deeplink/compose?to=${encodedEmail}&subject=${encodedSubject}&body=${encodedBody}`;
-        const yahooLink = `https://compose.mail.yahoo.com/?to=${encodedEmail}&subject=${encodedSubject}&body=${encodedBody}`;
-        const defaultLink = `mailto:${formData.email}?subject=${encodedSubject}&body=${encodedBody}`;
+    const days = eachDayOfInterval({
+        start: startOfWeek(startOfMonth(currentMonth)),
+        end: endOfWeek(endOfMonth(currentMonth))
+    });
 
+    const weekDays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+
+    if (bookingStep === 'success') {
         return (
             <div className="min-h-screen bg-white p-8 md:p-12 lg:p-20 flex justify-center items-center">
                 <Card className="max-w-md w-full p-8 text-center space-y-6">
@@ -171,40 +164,11 @@ Requested Time: ${format(selectedDate, 'M/d/yy')}, ${selectedTime}
                     <div>
                         <h2 className="text-2xl font-bold text-gray-900 mb-2">Booking Confirmed!</h2>
                         <p className="text-gray-600 mb-4">
-                            Thank you for scheduling a demo. We have prepared an email with your details.
-                        </p>
-                        <p className="text-sm text-gray-500 mb-4">
-                            Please select your email provider to send the confirmation:
+                            Thank you for scheduling a demo. We have sent an email with your confirmation details.
                         </p>
                     </div>
 
                     <div className="space-y-3">
-                        <div className="space-y-2">
-                            <Button asChild className="w-full bg-teal-900 hover:bg-teal-800 text-white cursor-pointer h-12">
-                                <a href={defaultLink}>
-                                    Open Default Email App
-                                </a>
-                            </Button>
-                        </div>
-
-                        <div className="grid grid-cols-3 gap-2">
-                            <Button asChild variant="outline" className="w-full border-red-200 text-red-600 hover:bg-red-50 cursor-pointer h-10">
-                                <a href={gmailLink} target="_blank" rel="noopener noreferrer">
-                                    Gmail
-                                </a>
-                            </Button>
-                            <Button asChild variant="outline" className="w-full border-blue-200 text-blue-600 hover:bg-blue-50 cursor-pointer h-10">
-                                <a href={outlookLink} target="_blank" rel="noopener noreferrer">
-                                    Outlook
-                                </a>
-                            </Button>
-                            <Button asChild variant="outline" className="w-full border-purple-200 text-purple-600 hover:bg-purple-50 cursor-pointer h-10">
-                                <a href={yahooLink} target="_blank" rel="noopener noreferrer">
-                                    Yahoo
-                                </a>
-                            </Button>
-                        </div>
-
                         <div className="pt-4">
                             <Button variant="ghost" onClick={() => window.location.reload()} className="w-full text-gray-500 hover:text-gray-700">
                                 Back to Home
