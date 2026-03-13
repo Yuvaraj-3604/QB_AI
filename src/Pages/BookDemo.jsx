@@ -66,6 +66,19 @@ const BookDemo = () => {
 
     const handleConfirmBooking = (e) => {
         e.preventDefault();
+        
+        if (
+            !formData.firstName.trim() || 
+            !formData.lastName.trim() || 
+            !formData.organization.trim() || 
+            !formData.email.trim() || 
+            !formData.phone.trim() || 
+            !formData.source
+        ) {
+            alert("Please fill in all required fields, including how you heard about Questbridge.");
+            return;
+        }
+
         setIsSending(true);
 
         const templateParams = {
@@ -92,8 +105,16 @@ const BookDemo = () => {
                 ticket_type: 'general' // Default or mapped from somewhere
             })
         })
-            .then(res => {
-                if (!res.ok) throw new Error('Failed to save to database');
+            .then(async res => {
+                if (!res.ok) {
+                    const errData = await res.json().catch(() => ({}));
+                    // If email is already registered, we can just proceed to send the booking email anyway
+                    if (res.status === 409) {
+                        console.warn('Email already registered, proceeding to send booking confirmation...');
+                        return { message: 'Existing participant, proceeding' };
+                    }
+                    throw new Error(errData.error || 'Failed to save to database');
+                }
                 return res.json();
             })
             .then(data => {
@@ -310,35 +331,26 @@ Requested Time: ${format(selectedDate, 'M/d/yy')}, ${selectedTime}
                                 </Card>
 
                                 {selectedDate && (
-                                    <div className="grid grid-cols-2 gap-2 mt-4 animate-in fade-in slide-in-from-top-2">
-                                        <Button
-                                            variant="outline"
-                                            className="w-full border-blue-600 text-blue-600 hover:bg-blue-50"
-                                            onClick={() => handleTimeSelect('9:00 AM')}
-                                        >
-                                            9:00 AM
-                                        </Button>
-                                        <Button
-                                            variant="outline"
-                                            className="w-full border-blue-600 text-blue-600 hover:bg-blue-50"
-                                            onClick={() => handleTimeSelect('9:30 AM')}
-                                        >
-                                            9:30 AM
-                                        </Button>
-                                        <Button
-                                            variant="outline"
-                                            className="w-full border-blue-600 text-blue-600 hover:bg-blue-50"
-                                            onClick={() => handleTimeSelect('10:00 AM')}
-                                        >
-                                            10:00 AM
-                                        </Button>
-                                        <Button
-                                            variant="outline"
-                                            className="w-full border-blue-600 text-blue-600 hover:bg-blue-50"
-                                            onClick={() => handleTimeSelect('10:30 AM')}
-                                        >
-                                            10:30 AM
-                                        </Button>
+                                    <div className="grid grid-cols-2 gap-2 mt-4 animate-in fade-in slide-in-from-top-2 max-h-[300px] overflow-y-auto pr-2">
+                                        {[
+                                            '9:00 AM', '9:30 AM', '10:00 AM', '10:30 AM',
+                                            '11:00 AM', '11:30 AM', '12:00 PM', '12:30 PM',
+                                            '1:00 PM', '1:30 PM', '2:00 PM', '2:30 PM',
+                                            '3:00 PM', '3:30 PM', '4:00 PM', '4:30 PM',
+                                            '5:00 PM', '5:30 PM', '6:00 PM', '6:30 PM',
+                                            '7:00 PM', '7:30 PM', '8:00 PM', '8:30 PM',
+                                            '9:00 PM', '9:30 PM', '10:00 PM', '10:30 PM',
+                                            '11:00 PM'
+                                        ].map((time) => (
+                                            <Button
+                                                key={time}
+                                                variant="outline"
+                                                className="w-full border-blue-600 text-blue-600 hover:bg-blue-50"
+                                                onClick={() => handleTimeSelect(time)}
+                                            >
+                                                {time}
+                                            </Button>
+                                        ))}
                                     </div>
                                 )}
                             </div>
@@ -449,7 +461,7 @@ Requested Time: ${format(selectedDate, 'M/d/yy')}, ${selectedTime}
                                     </div>
 
                                     <div className="space-y-3 pt-2">
-                                        <label className="text-sm font-bold text-gray-900">Where did you hear about Questbridge?</label>
+                                        <label className="text-sm font-bold text-gray-900">Where did you hear about Questbridge? <span className="text-gray-400 font-normal">(Required)</span></label>
                                         <div className="space-y-2">
                                             {['Google', 'ChatGPT', 'Referral', 'Event', 'Ads', 'Blog'].map((source) => (
                                                 <div key={source} className="flex items-center gap-2">
@@ -460,6 +472,7 @@ Requested Time: ${format(selectedDate, 'M/d/yy')}, ${selectedTime}
                                                         value={source}
                                                         checked={formData.source === source}
                                                         onChange={handleInputChange}
+                                                        required
                                                         className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                                                     />
                                                     <label htmlFor={source} className="text-sm text-gray-600 cursor-pointer">{source}</label>
